@@ -1,0 +1,47 @@
+.scraph-wrapper {
+  position: relative;
+  background: #ddd;
+}
+
+.scraph-canvas {
+  width: 100%;
+  height: 100%;
+}
+
+.scraph-edge-wrapper {
+  &:hover {
+    > .scraph-edge {
+      stroke-width: 4px;
+      stroke: #558ed2;
+      marker-end: url(#arrow-head-hover);
+    }
+  }
+  .scraph-edge {
+    stroke-width: 2px;
+    pointer-events: auto;
+    marker-end: url(#arrow-head);
+    stroke: #666;
+  
+    &.scraph-edge-selected {
+      marker-end: url(#arrow-head-selected);
+      stroke: #a0df70;
+      stroke-width: 4px;
+    }
+  }
+  
+  .scraph-edge-hover-pad {
+    stroke: transparent;
+    stroke-width: 15px;
+  }
+}
+
+.scraph-node-wrapper {
+  &:hover {
+    filter: url('#shadow1');
+  }
+  .scraph-node {
+    &.scraph-node-draggable{
+      cursor: pointer;
+    }
+  }
+}

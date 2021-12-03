@@ -1,0 +1,6 @@
+demo
+src
+*.json
+*.html
+vit.config.ts
+*.txt

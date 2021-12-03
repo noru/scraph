@@ -1,0 +1,46 @@
+{
+  "name": "scraph",
+  "version": "0.0.0-beta.0",
+  "main": "dist/scraph.es.js",
+  "scripts": {
+    "demo": "vite",
+    "build": "tsc && vite build",
+    "lint": "eslint ./src/**/*",
+    "lint:fix": "eslint --fix ./src/**/*"
+  },
+  "dependencies": {
+    "@drewxiu/utils": "^1.0.36",
+    "clsx": "^1.1.1",
+    "d3": "^7.1.1",
+    "dagre": "^0.8.5",
+    "kld-intersections": "^0.7.0",
+    "localstorage-slim": "^2.2.0",
+    "lodash.isnumber": "^3.0.3",
+    "lodash.memoize": "^4.1.2",
+    "lodash.throttle": "^4.1.1",
+    "rc-drawer": "^4.4.3",
+    "react-json-tree": "^0.15.1",
+    "recoil": "^0.5.2",
+    "svg-intersections": "^0.4.0"
+  },
+  "peerDependencies": {
+    "react": ">=16.8"
+  },
+  "devDependencies": {
+    "@types/lodash.memoize": "^4.1.6",
+    "@types/node": "^16.11.11",
+    "@types/react": "^17.0.0",
+    "@types/react-dom": "^17.0.0",
+    "@typescript-eslint/eslint-plugin": "^5.5.0",
+    "@typescript-eslint/parser": "^5.5.0",
+    "@vitejs/plugin-react": "^1.0.0",
+    "eslint": "^8.4.0",
+    "eslint-plugin-modules-newline": "^0.0.6",
+    "eslint-plugin-react": "^7.27.1",
+    "react": "^17.0.0",
+    "react-dom": "^17.0.0",
+    "sass": "^1.44.0",
+    "typescript": "^4.5.2",
+    "vite": "^2.6.4"
+  }
+}
