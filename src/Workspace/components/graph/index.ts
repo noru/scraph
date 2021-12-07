@@ -1,2 +1,2 @@
-export * from './Node'
-export * from './Edge'
+export * from './Nodes'
+export * from './Edges'

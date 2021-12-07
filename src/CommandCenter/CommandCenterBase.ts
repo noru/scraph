@@ -1,23 +1,7 @@
-import {
-  getRecoil,
-  setRecoil,
-} from '@/utils/RecoilNexus'
-import {
-  atom,
-  RecoilState,
-  waitForAll,
-} from 'recoil'
 import { produce } from '@/utils/produce'
-import {
-  getGraphModelAtoms,
-  GraphAtoms,
-  GraphEdge,
-  GraphNode,
-} from '../Workspace/hooks/useGraphAtoms'
-import {
-  getWorkspaceAtoms,
-  WorkspaceAtoms,
-} from '../Workspace/store/config'
+import { WorkspaceState } from '@/Workspace/store/state'
+import { getWorkspaceStore, WorkspaceStore } from '@/Workspace/store/workspace'
+import { observable } from 'mobx'
 
 const UNDO_SIZE = 30
 type Payload = any
@@ -77,12 +61,11 @@ type Subscribers = {
 export abstract class CommandCenter {
 
   _id: string
-  _graphAtoms: GraphAtoms
-  _workspaceAtoms: WorkspaceAtoms
   _readonly = false
+  _store: WorkspaceStore
 
-  undoStackAtom: RecoilState<Command[]>
-  redoStackAtom: RecoilState<Command[]>
+  undoStack: Command[]
+  redoStack: Command[]
 
   _subscribers: Subscribers = Object.keys(CMD).reduce((prev, next) => {
     prev[next] = [] as CmdHandler[]
@@ -91,16 +74,9 @@ export abstract class CommandCenter {
 
   constructor(id: string) {
     this._id = id
-    this._graphAtoms = getGraphModelAtoms(id)
-    this._workspaceAtoms = getWorkspaceAtoms(id)
-    this.undoStackAtom = atom<Command[]>({
-      key: 'undo-stack-' + id,
-      default: [],
-    })
-    this.redoStackAtom = atom<Command[]>({
-      key: 'redo-stack-' + id,
-      default: [],
-    })
+    this._store = getWorkspaceStore(id)
+    this.undoStack = observable([])
+    this.redoStack = observable([])
   }
 
   devMode(devMode: boolean) {
@@ -137,16 +113,14 @@ export abstract class CommandCenter {
       }
     })
     if (params?.undo) {
-      setRecoil(this.undoStackAtom, produce(d => {
-        if (d.length === UNDO_SIZE) {
-          d.unshift()
-        }
-        d.push({
-          cmd,
-          params,
-        })
-      }))
-      !params.isRedo && setRecoil(this.redoStackAtom, [])
+      if (this.undoStack.length === UNDO_SIZE) {
+        this.undoStack.unshift()
+      }
+      this.undoStack.push({
+        cmd,
+        params,
+      })
+      !params.isRedo && (this.redoStack.length = 0)
     }
   }
 
@@ -155,8 +129,7 @@ export abstract class CommandCenter {
   }
 
   undo() {
-    let undoStack = getRecoil(this.undoStackAtom)
-    let action = undoStack[undoStack.length - 1]
+    let action = this.undoStack[this.undoStack.length - 1]
     if (!action) {
       return
     }
@@ -164,8 +137,8 @@ export abstract class CommandCenter {
     try {
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       params!.undo!.call(this, cmd, params)
-      setRecoil(this.undoStackAtom, produce(d => d.pop()))
-      setRecoil(this.redoStackAtom, produce(d => d.push(action as Command)))
+      this.undoStack.pop()
+      this.redoStack.push(action)
     } catch (e) {
       console.error(`[CommandCenter] Undo CMD ${cmd} failed`)
       throw e
@@ -173,19 +146,18 @@ export abstract class CommandCenter {
   }
 
   redo() {
-    let redoStack = getRecoil(this.redoStackAtom)
-    let action = redoStack[redoStack.length - 1]
+    let action = this.redoStack[this.redoStack.length - 1]
     if (!action) {
       return
     }
     let { params, cmd } = action
     if (params?.redo) {
       params.redo.call(this, cmd, params)
-      setRecoil(this.redoStackAtom, produce(d => d.pop()))
-      setRecoil(this.undoStackAtom, produce(d => d.push({
+      this.redoStack.pop()
+      this.redoStack.push({
         cmd,
         params,
-      })))
+      })
     } else {
       this.exec(cmd, {
         ...params!,
@@ -194,37 +166,26 @@ export abstract class CommandCenter {
     }
   }
 
-  getGraph() {
-    let model = getRecoil(this._graphAtoms.graphIdList)
-    let nodes = getRecoil(waitForAll(model.nodes.map(id => this._graphAtoms.nodeFamily(id)))) as GraphNode[]
-    let edges = getRecoil(waitForAll(model.edges.map(id => this._graphAtoms.edgeFamily(id)))) as GraphEdge[]
-
-    return {
-      nodes,
-      edges,
-    }
-  }
-
   getNodeById(id?: string) {
     if (!id) {
       return null
     }
-    return getRecoil(this._graphAtoms.nodeFamily(id))
+    return this._store.graph.nodeMap[id]
   }
 
   getWorkspaceConfig() {
-    return getRecoil(this._workspaceAtoms.config)
+    return this._store.config
   }
 
   getWorkspaceInfo() {
-    return getRecoil(this._workspaceAtoms.info)
+    return this._store.state
   }
 
   getWorkspaceCenter() {
-    let { workspaceWidth = 0, workspaceHeight = 0 } = getRecoil(this._workspaceAtoms.config)
+    let { workspaceWidth = 0, workspaceHeight = 0 } = this._store.config
     let {
       scale, translateX, translateY,
-    } = getRecoil(this._workspaceAtoms.transform)
+    } = this._store.state
     return {
       x: (workspaceWidth / 2 - translateX) / scale,
       y: (workspaceHeight / 2 - translateY) / scale,

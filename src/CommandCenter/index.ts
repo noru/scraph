@@ -7,28 +7,12 @@ import { isUndefinedOrNull } from '@drewxiu/utils/lib/is'
 import { useContext } from 'react'
 import { WorkspaceIDContext } from '../Workspace/Workspace'
 import {
-  GraphEdge,
-  IDList,
-  GraphModelFull,
-  GraphNode,
-} from '../Workspace/hooks/useGraphAtoms'
-import {
-  WorkspaceConfig,
-  WorkspaceInfo,
-} from '../Workspace/store/config'
-import {
   CMD,
   CmdHandler,
   CommandCenter,
   Params,
 } from './CommandCenterBase'
-import {
-  getRecoil,
-  setRecoil,
-  recoilTransaction,
-  RecoilSetter,
-  RecoilResetter,
-} from '@/utils/RecoilNexus'
+
 import ls from 'localstorage-slim'
 import {
   calculateLayout,
@@ -36,6 +20,9 @@ import {
 } from '../Workspace/components/graph/utils'
 import { produce } from '../utils/produce'
 import { removeElementFromArray } from '../utils/removeElementFromArray'
+import { WorkspaceState } from '@/Workspace/store/state'
+import { WorkspaceConfig } from '@/Workspace/store/config'
+import { GraphEdge, GraphNode } from '@/Workspace/store/graph'
 
 // https://github.com/dagrejs/dagre/wiki#configuring-the-layout
 type DagreConfig = Record<string, string | number>
@@ -46,7 +33,10 @@ class CommandCenterInternal extends CommandCenter {
     super(id)
     this.initBuildInActions()
     window[`__workspace_cmd_${id.replace(/[^a-zA-Z0-9]/g, '')}`] = this
-    // todo, destroy cmd
+  }
+
+  destroy() {
+    window[`__workspace_cmd_${this._id.replace(/[^a-zA-Z0-9]/g, '')}`] = null
   }
 
   initBuildInActions() {
@@ -72,51 +62,38 @@ class CommandCenterInternal extends CommandCenter {
     this.subscribe(CMD.Redo, this.onRedo as CmdHandler)
   }
 
-  onClear(_, resetter?: RecoilResetter) {
-    let model = getRecoil(this._graphAtoms.graphIdList)
-    let exec = resetter => {
-      model.nodes.forEach(id => resetter(this._graphAtoms.nodeFamily(id)))
-      model.edges.forEach(id => resetter(this._graphAtoms.edgeFamily(id)))
-      resetter(this._graphAtoms.nodeIdList)
-      resetter(this._graphAtoms.edgeIdList)
-    }
-    resetter ? exec(resetter) : recoilTransaction(({ reset }) => exec(reset))
+  onClear(_) {
+    this._store.graph.nodes.length = 0
+    this._store.graph.edges.length = 0
   }
 
-  onInitGraph(_, {
-    payload: {
-      nodes, edges, clear,
-    },
-  }: Params<GraphModelFull>) {
-    clear && this.onClear(CMD.Clear)
+  onInitGraph(_, { payload: { nodes, edges } }) {
     if (isEmpty(nodes)) {
       return
     }
-    recoilTransaction(({ set }) => {
-      if (isUndefinedOrNull(nodes[0].x)) {
-        let graph = calculateLayout(nodes, edges)
-        nodes = nodes.map(n => {
-          let { x, y } = graph.node(n.id)
-          return {
-            ...n,
-            x,
-            y,
-          }
-        })
-      }
-      nodes.forEach(payload => {
-        this.onUpsertNode(_, { payload }, set)
+    if (isUndefinedOrNull(nodes[0].x)) {
+      let graph = calculateLayout(nodes, edges)
+      nodes = nodes.map(n => {
+        let { x, y } = graph.node(n.id)
+        return {
+          ...n,
+          x,
+          y,
+        }
       })
-      edges.forEach(payload => {
-        this.onUpsertEdge(_, { payload }, set)
-      })
+    }
+    nodes.forEach(payload => {
+      this.onUpsertNode(_, { payload })
+    })
+    edges.forEach(payload => {
+      this.onUpsertEdge(_, { payload })
     })
     setTimeout(() => this.dispatch(CMD.ZoomToFit))
   }
 
-  onCanvasTransform(_: CMD, { payload }: Params<Partial<WorkspaceInfo>>) {
+  onCanvasTransform(_: CMD, { payload }: Params<Partial<WorkspaceState>>) {
     if (!isUndefinedOrNull(payload.scale)) {
-      let { maxZoom, minZoom } = getRecoil(this._workspaceAtoms.config)
+      let { maxZoom, minZoom } = this._store.config
       if (payload.scale > maxZoom) {
         payload.scale = maxZoom
       }
@@ -124,20 +101,17 @@ class CommandCenterInternal extends CommandCenter {
         payload.scale = minZoom
       }
     }
-    setRecoil(this._workspaceAtoms.transform, produceMerge(payload))
+    Object.assign(this._store.state, payload)
   }
 
   onUpdateWsConfig(_: CMD, { payload }: Params<Partial<WorkspaceConfig>>) {
-    setRecoil(this._workspaceAtoms.config, config => {
-      let newConfig = produceMerge(payload)(config)
-      ls.set('workspace-config-ls-' + this._id, newConfig)
-      return newConfig
-    })
+    Object.assign(this._store.config, payload)
+    ls.set('workspace-config-' + this._id, this._store.config)
   }
 
   onCalculateGraphLayout(_: CMD, { payload }: Params<DagreConfig> = { payload: {} }) {
 
-    let { nodes, edges } = this.getGraph()
+    let { nodes, edges } = this._store.graph
     let graph = calculateLayout(
       nodes.map(n => ({
         id: n.id,
@@ -162,92 +136,69 @@ class CommandCenterInternal extends CommandCenter {
   }
 
   onDeleteNode(_: CMD, { payload }: Params<string>) {
-    recoilTransaction(({ set }) => {
-      set(this._graphAtoms.nodeFamily(payload), null)
-      set(this._graphAtoms.nodeIdList, (draft: IDList) => draft = removeElementFromArray(draft, payload))
-      if (getRecoil(this._workspaceAtoms.selectedElement)?.id === payload) {
-        set(this._workspaceAtoms.selectedElement, null)
-      }
-    })
+    let node = this._store.graph.nodeMap[payload]
+    this._store.graph.nodes['remove'](node) // todo, proper remove element
+    if (this._store.state.selectedElement?.id === payload) {
+      this._store.state.selectedElement = null
+    }
   }
 
-  onUpsertNode(_: CMD, { payload }: Params<GraphNode>, setter?: RecoilSetter) {
+  onUpsertNode(_: CMD, { payload }: Params<GraphNode>) {
     if (isUndefinedOrNull(payload.id)) {
       throw Error(`Invalid node ID: ${payload.id}`)
     }
-    let exec = (setter: RecoilSetter) => {
-      setter(this._graphAtoms.nodeFamily(payload.id), produce(draft => {
-        if (!draft) return payload
-        Object.assign(draft, payload)
-        if (isUndefinedOrNull(draft.x) || isUndefinedOrNull(draft.y)) {
-          let { x, y } = this._getNodeInitPosition(draft.width, draft.height)
-          draft.x = x
-          draft.y = y
-        }
-      }))
-      setter(this._graphAtoms.nodeIdList, produce((draft: IDList) => {
-        if (draft.indexOf(payload.id) > -1) return
-        draft.push(payload.id)
-      }))
+    let node = this._store.graph.nodeMap[payload.id]
+    if (node) {
+      Object.assign(node, payload)
+    } else {
+      if (isUndefinedOrNull(payload.x) || isUndefinedOrNull(payload.y)) {
+        let { x, y } = this._getNodeInitPosition(payload.width, payload.height)
+        payload.x = x
+        payload.y = y
+      }
+      this._store.graph.nodes.push(payload)
     }
-    setter ? exec(setter) : recoilTransaction(({ set }) => exec(set))
   }
 
   onSelectNode(_: CMD, { payload }: Params<GraphNode>) {
-    this.clearSelection()
-    recoilTransaction(({ set }) => {
-      set(this._workspaceAtoms.selectedElement, {
-        id: payload.id,
-        type: 'node',
-      })
-      set(this._graphAtoms.nodeFamily(payload.id), produceMerge({ selected: true }))
-    })
+    this._store.state.selectedElement = {
+      id: payload.id,
+      type: 'node',
+    }
   }
 
   onDeselectNode(_: CMD, { payload }: Params<GraphNode>) {
-    recoilTransaction(({ set, get }) => {
-      let selected = get(this._workspaceAtoms.selectedElement)
-      if (selected?.id === payload.id) {
-        set(this._workspaceAtoms.selectedElement, null)
-        set(this._graphAtoms.nodeFamily(payload.id), produceMerge({ selected: false }))
-      }
-    })
-
+    this.clearSelection()
   }
 
-  onUpsertEdge(_: CMD, { payload }: Params<GraphEdge>, setter?: RecoilSetter) {
+  onUpsertEdge(_: CMD, { payload }: Params<GraphEdge>) {
     if (!payload.id) {
       throw Error(`Invalid edge ID: ${payload.id}`)
     }
-    let exec = (setter: RecoilSetter) => {
-      setter(this._graphAtoms.edgeFamily(payload.id), produceMerge(payload))
-      setter(this._graphAtoms.edgeIdList, produce((draft: IDList) => {
-        if (draft.indexOf(payload.id) > -1) return
-        draft.push(payload.id)
-      }))
+    let edge = this._store.graph.edgeMap[payload.id]
+    if (edge) {
+      Object.assign(edge, payload)
+    } else {
+      this._store.graph.edges.push(payload)
     }
-    setter ? exec(setter) : recoilTransaction(({ set }) => exec(set))
   }
 
   onDeleteEdge(_: CMD, { payload }: Params<string>) {
-    recoilTransaction(({ set }) => {
-      set(this._graphAtoms.edgeFamily(payload), null)
-      set(this._graphAtoms.edgeIdList, (draft: IDList) => removeElementFromArray(draft, payload))
-      if (getRecoil(this._workspaceAtoms.selectedElement)?.id === payload) {
-        set(this._workspaceAtoms.selectedElement, null)
-      }
-    })
+    let edge = this._store.graph.edgeMap[payload]
+    this._store.graph.edges['remove'](edge)
+    if (this._store.state.selectedElement?.id === payload) {
+      this._store.state.selectedElement = null
+    }
   }
 
   onSelectEdge(_: CMD, { payload }: Params<GraphEdge>) {
-    this.clearSelection()
-    setRecoil(this._workspaceAtoms.selectedElement, {
+    this._store.state.selectedElement = {
       id: payload.id,
       type: 'edge',
-    })
+    }
   }
-  onDeselectEdge(_: CMD) {
-    setRecoil(this._workspaceAtoms.selectedElement, null)
+  onDeselectEdge(_: CMD, { payload }: Params<GraphEdge>) {
+    this.clearSelection()
   }
   onUndo() {
     this.undo()
@@ -256,27 +207,17 @@ class CommandCenterInternal extends CommandCenter {
     this.redo()
   }
   onMouseMove(_, { payload }) {
-    setRecoil(this._workspaceAtoms.mousePos, payload)
+    Object.assign(this._store.mousePos, payload)
   }
   onHoverElement(_, { payload }) {
-    setRecoil(this._workspaceAtoms.hoverElement, payload)
+    this._store.state.hoverElement = payload
   }
   onDragMode(_, { payload }) {
-    setRecoil(this._workspaceAtoms.dragMode, payload)
+    this._store.state.dragMode = payload
   }
-
   clearSelection() {
-    recoilTransaction(({ set, get }) => {
-      let selected = get(this._workspaceAtoms.selectedElement)
-      selected && set(
-        selected.type === 'node'
-          ? this._graphAtoms.nodeFamily(selected.id)
-          : this._graphAtoms.edgeFamily(selected.id),
-        produceMerge({ selected: false }),
-      )
-    })
+    this._store.state.selectedElement = null
   }
-
   _getNodeInitPosition(width = 0, height = 0): Point2D {
     let { x, y } = this.getWorkspaceCenter()
     return {

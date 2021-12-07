@@ -4,23 +4,19 @@ import React, {
   useRef,
 } from 'react'
 import {
-  GraphNode,
-  useGraphAtoms,
-} from '../../hooks/useGraphAtoms'
-import {
   applyOffset,
   getLine,
   intersectLinePolygon,
   Line2D,
   Point2D,
 } from './utils'
-import { useRecoilValue } from 'recoil'
 import { useCommandCenter } from '../../../CommandCenter'
-import { useWorkspaceAtoms } from '../WorkspaceRoot'
 import { CMD } from '../../../CommandCenter/CommandCenterBase'
 import * as d3 from 'd3'
 import clsx from 'clsx'
 import classes from '@/style.module.scss'
+import { useEdge, useNode, useSelectedElement } from '@/Workspace/store'
+import { GraphNode } from '@/Workspace/store/graph'
 
 interface Props {
   id: string
@@ -42,12 +38,10 @@ export function Edge({ id }: PropsWithChildren<Props>) {
       .on('mouseleave', () => setHoverEdge(null))
     return () => d3.select(ref.current).on('mouseenter', null).on('mouseleave', null)
   }, [])
-  let { nodeFamily, edgeFamily } = useGraphAtoms()
-  let { selectedElement } = useWorkspaceAtoms()
-  let selectedElementVal = useRecoilValue(selectedElement)
-  let edge = useRecoilValue(edgeFamily(id))!
-  let sourceNode = useRecoilValue(nodeFamily(edge.source))
-  let targetNode = useRecoilValue(nodeFamily(edge.target))
+  let selectedElement = useSelectedElement()
+  let edge = useEdge(id)
+  let sourceNode = useNode(edge.source)
+  let targetNode = useNode(edge.target)
   let sourcePos = getNodePos(sourceNode) ?? edge.start
   let targetPos = getNodePos(targetNode) ?? edge.end
   if (!sourcePos || !targetPos) {
@@ -93,10 +87,11 @@ export function Edge({ id }: PropsWithChildren<Props>) {
   let end = intersectLinePolygon(line, targetPolygon).points[0] ?? targetPos
 
   const pathDescription = getLine([start, end])
-  const isSelected = selectedElementVal?.id === edge.id
+  const isSelected = selectedElement?.id === edge.id
   return (
     <g
       ref={ref}
+      className={clsx(classes['scraph-edge-wrapper'])}
       onClick={() => {
         let payload = edge
         cmd.dispatch(CMD.ClickEdge, { payload })

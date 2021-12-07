@@ -1,8 +1,8 @@
+import { getDefaultGraphNode } from '@/Workspace/store/graph'
 import React from 'react'
 import { useCommandCenter } from '../../../CommandCenter'
 import { CMD } from '../../../CommandCenter/CommandCenterBase'
 import { GraphControls } from './GraphControls'
-import { getDefaultGraphNode } from '../../hooks/useGraphAtoms'
 import { UndoRedo } from './UndoRedo'
 
 export function Toolbar() {
@@ -14,7 +14,8 @@ export function Toolbar() {
       left: 0,
       display: 'flex',
       justifyContent: 'center',
-    }}>
+    }}
+    >
       <button onClick={() => cmd.dispatch(CMD.RecalculateGraphLayout)}>
         Calculate Layout
       </button>

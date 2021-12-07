@@ -1,25 +1,20 @@
 import React, {
   ReactNode,
   useCallback,
+  useContext,
   useEffect,
   useLayoutEffect,
   useRef,
 } from 'react'
 import * as d3 from 'd3'
-import {
-  GraphNode,
-  useGraphAtoms,
-} from '../../hooks/useGraphAtoms'
-import { useWorkspaceAtoms } from '../WorkspaceRoot'
-import { useRecoilValue } from 'recoil'
 import { useCommandCenter } from '../../../CommandCenter'
-import {
-  CMD,
-  Params,
-} from '../../../CommandCenter/CommandCenterBase'
+import { CMD, Params } from '../../../CommandCenter/CommandCenterBase'
 import { isCtrlPressed } from '../../../utils/isCtrlPressed'
 import clsx from 'clsx'
 import classes from '@/style.module.scss'
+import { GraphNode } from '@/Workspace/store/graph'
+import { useNode, useWorkspaceState } from '@/Workspace/store'
+import { WorkspaceIDContext } from '@/Workspace/Workspace'
 
 interface Props {
   id: string
@@ -35,8 +30,8 @@ interface Position {
 
 export function Node({ id, renderNode }: Props) {
   let ref = useRef<SVGGElement>(null)
-  let { nodeFamily } = useGraphAtoms()
-  let node = useRecoilValue(nodeFamily(id))!
+  let { id: wsId } = useContext(WorkspaceIDContext)
+  let node = useNode(id, wsId)
   let position = useRef<Position>({
     x: node.x ?? 0,
     y: node.y ?? 0,
@@ -44,13 +39,11 @@ export function Node({ id, renderNode }: Props) {
     offsetY: 0,
   })
   let transform = `translate(${node.x ?? 0}, ${node.y ?? 0}) rotate(0)`
-  let { dragMode, selectedElement } = useWorkspaceAtoms()
-  let dragModeVal = useRecoilValue(dragMode)
-  let selectedElementVal = useRecoilValue(selectedElement)
+  let { dragMode, selectedElement } = useWorkspaceState(wsId)
   let cmd = useCommandCenter()
 
   let onDrag = useCallback((evt) => {
-    if (dragModeVal === 'drag' && !isCtrlPressed(evt.sourceEvent)) {
+    if (dragMode === 'drag' && !isCtrlPressed(evt.sourceEvent)) {
       let pos = position.current
       let payload = {
         id: node.id,
@@ -68,10 +61,10 @@ export function Node({ id, renderNode }: Props) {
       }
       cmd.dispatch(CMD.UpdateEdge, { payload })
     }
-  }, [id, node.id, node.x, node.y, dragModeVal])
+  }, [id, node.id, node.x, node.y, dragMode])
 
   let onDragStart = useCallback((evt) => {
-    if (dragModeVal === 'drag' && !isCtrlPressed(evt.sourceEvent)) {
+    if (dragMode === 'drag' && !isCtrlPressed(evt.sourceEvent)) {
       position.current = {
         x: node.x ?? 0,
         y: node.y ?? 0,
@@ -99,10 +92,10 @@ export function Node({ id, renderNode }: Props) {
     setTimeout(() => {
       ref.current?.parentElement?.parentElement?.appendChild(ref.current.parentElement)
     }, 200)
-  }, [node.id, node.x, node.y, dragModeVal])
+  }, [node.id, node.x, node.y, dragMode])
 
   let onDragEnd = useCallback((evt) => {
-    if (dragModeVal === 'drag' && !isCtrlPressed(evt.sourceEvent)) {
+    if (dragMode === 'drag' && !isCtrlPressed(evt.sourceEvent)) {
       if (
         Math.abs(evt.x + position.current.offsetX - position.current.x) < 4 &&
         Math.abs(evt.y + position.current.offsetY - position.current.y) < 4
@@ -160,7 +153,7 @@ export function Node({ id, renderNode }: Props) {
         })
       }
     }
-  }, [node.id, dragModeVal])
+  }, [node.id, dragMode])
 
   let setHoverNode = useCallback((id) => {
     let payload = id ? {
@@ -201,7 +194,7 @@ export function Node({ id, renderNode }: Props) {
         onClick={() => {
           cmd.dispatch(CMD.ClickNode, { payload: node })
           if (node.selectable) {
-            if (selectedElementVal?.id === node.id) {
+            if (selectedElement?.id === node.id) {
               cmd.dispatch(CMD.DeselectNode, { payload: node })
             } else {
               cmd.dispatch(CMD.SelectNode, { payload: node })

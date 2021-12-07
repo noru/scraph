@@ -2,20 +2,17 @@ import React, {
   useCallback,
   useContext,
 } from 'react'
-import { useRecoilValue } from 'recoil'
 import { WorkspaceIDContext } from '../../Workspace'
-import { useWorkspaceAtoms } from '../WorkspaceRoot'
 import { useCommandCenter } from '../../../CommandCenter'
 import { CMD } from '../../../CommandCenter/CommandCenterBase'
+import { useWorkspaceState } from '@/Workspace/store'
 
 const ZoomStep = 0.02
 
 export function GraphControls() {
   let { id } = useContext(WorkspaceIDContext)
-  let { info } = useWorkspaceAtoms()
-  let wsInfo = useRecoilValue(info)
+  let wsState = useWorkspaceState(id)
   let cmd = useCommandCenter()
-
   let transform = useCallback((payload) => {
     cmd.dispatch(CMD.CanvasTransform, { payload })
   }, [id])
@@ -31,45 +28,49 @@ export function GraphControls() {
           type="radio"
           name="dragMode"
           value="drag"
-          checked={wsInfo.dragMode === 'drag'}
+          checked={wsState.dragMode === 'drag'}
           onChange={(evt) => setDragMode(evt.target.value)}
         />
-          drag
+          Drag
       </label>
       <label>
         <input
           type="radio"
           name="dragMode"
           value="connect"
-          checked={wsInfo.dragMode === 'connect'}
+          checked={wsState.dragMode === 'connect'}
           onChange={(evt) => setDragMode(evt.target.value)}
         />
-          connect
+          Connect
       </label>
       <span>
         <button onClick={() => transform({
-          translateX: wsInfo.translateX,
-          translateY: wsInfo.translateY,
-          scale: wsInfo.scale - ZoomStep,
+          translateX: wsState.translateX,
+          translateY: wsState.translateY,
+          scale: wsState.scale - ZoomStep,
         })}
-        >-
+        >
+          -
         </button>
-        <button>{(wsInfo.scale * 100) | 0}%</button>
+        <button>{(wsState.scale * 100) | 0}%</button>
         <button onClick={() => transform({
-          translateX: wsInfo.translateX,
-          translateY: wsInfo.translateY,
-          scale: wsInfo.scale + ZoomStep,
+          translateX: wsState.translateX,
+          translateY: wsState.translateY,
+          scale: wsState.scale + ZoomStep,
         })}
-        >+
+        >
+          +
         </button>
         <button onClick={() => transform({
           translateX: 0,
           translateY: 0,
           scale: 1,
         })}
-        >Reset
+        >
+          Reset
         </button>
-        <button onClick={() => cmd.dispatch(CMD.ZoomToFit)}>zoom to fit
+        <button onClick={() => cmd.dispatch(CMD.ZoomToFit)}>
+          Zoom to fit
         </button>
       </span>
     </div>

@@ -1,11 +1,11 @@
-import React from 'react'
-import { useRecoilValue } from 'recoil'
-import { useWorkspaceAtoms } from './WorkspaceRoot'
+import React, { useContext } from 'react'
+import { useWorkspaceConfig } from '../store'
+import { WorkspaceIDContext } from '../Workspace'
 
 export function Background() {
 
-  let { config } = useWorkspaceAtoms()
-  let { canvasSize , backgroundGrid } = useRecoilValue(config)
+  let { id } = useContext(WorkspaceIDContext)
+  let { canvasSize , backgroundGrid } = useWorkspaceConfig(id)
   let center = canvasSize / 2
   let x = -center + 2650
   let y = -center + 1440
