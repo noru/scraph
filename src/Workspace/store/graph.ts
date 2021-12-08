@@ -29,6 +29,8 @@ export interface GraphStateStore {
   edges: GraphEdge[]
   nodeMap: Record<string, GraphNode>
   edgeMap: Record<string, GraphEdge>
+  nodeIdSet: Set<string>
+  edgeIdSet: Set<string>
 }
 
 export function _getGraphStateStore(): GraphStateStore {
@@ -40,6 +42,12 @@ export function _getGraphStateStore(): GraphStateStore {
     },
     get edgeMap() {
       return keyBy(this.edges, 'id')
+    },
+    get nodeIdSet() {
+      return new Set<string>(this.nodes.map(n => n.id))
+    },
+    get edgeIdSet() {
+      return new Set<string>(this.edges.map(n => n.id))
     },
   }, undefined, { autoBind: true })
 }

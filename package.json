@@ -1,6 +1,6 @@
 {
   "name": "scraph",
-  "version": "0.0.0-beta.0",
+  "version": "0.0.0-beta.1",
   "main": "dist/scraph.es.js",
   "scripts": {
     "demo": "vite",
@@ -23,7 +23,7 @@
     "rc-drawer": "^4.4.3",
     "react-json-tree": "^0.15.1",
     "svg-intersections": "^0.4.0",
-    "use-mobx-observable": "^0.1.4"
+    "use-mobx-observable": "^0.1.5"
   },
   "peerDependencies": {
     "react": ">=16.8"

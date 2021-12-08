@@ -1,7 +1,8 @@
-import { useContext, useMemo } from 'react'
+import { useContext, useMemo, useState } from 'react'
 import { getWorkspaceStore } from './workspace'
-import { select, useObservable } from 'use-mobx-observable'
+import { select, useObservable, useWatch } from 'use-mobx-observable'
 import { WorkspaceIDContext } from '../Workspace'
+
 
 export function useWorkspaceId() {
   return useContext(WorkspaceIDContext).id
@@ -25,6 +26,14 @@ export function useWorkspaceState(wsId: string = useWorkspaceId()) {
 export function useMousePositionState(wsId: string = useWorkspaceId()) {
   let mousePos = useMemo(() => getWorkspaceStore(wsId).mousePos, [wsId])
   return useObservable(mousePos)
+}
+
+export function useNodeIdSet(wsId: string = useWorkspaceId()) {
+  return useWatch(() => getWorkspaceStore(wsId).graph.nodeIdSet)[0]
+}
+
+export function useEdgeIdSet(wsId: string = useWorkspaceId()) {
+  return useWatch(() => getWorkspaceStore(wsId).graph.edgeIdSet)[0]
 }
 
 export function useNode(id: string, wsId: string = useWorkspaceId()) {

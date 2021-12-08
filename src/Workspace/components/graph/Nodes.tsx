@@ -1,5 +1,5 @@
 import React from 'react'
-import { useGraphState } from '@/Workspace/store'
+import { useNodeIdSet } from '@/Workspace/store'
 import { GraphNode } from '@/Workspace/store/graph'
 import { ReactNode } from 'react'
 import { Node } from './Node'
@@ -9,14 +9,14 @@ interface Props {
 }
 
 export function Nodes({ renderNode }: Props) {
-  let { nodes } = useGraphState()
+  let idSet = useNodeIdSet()
   return (
     <>
       {
-        nodes.map(n => (
+        Array.from(idSet).map(id => (
           <Node
-            key={n.id}
-            id={n.id}
+            key={id}
+            id={id}
             renderNode={renderNode}
           />
         ))

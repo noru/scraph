@@ -1,17 +1,17 @@
 import React from 'react'
-import { useGraphState } from '@/Workspace/store'
+import { useEdgeIdSet } from '@/Workspace/store'
 import { Edge } from './Edge'
 
 export function Edges() {
-  let { edges } = useGraphState()
+  let idSet = useEdgeIdSet()
 
   return (
     <>
       {
-        edges.map(e => (
+        Array.from(idSet).map(id => (
           <Edge
-            key={e.id}
-            id={e.id}
+            key={id}
+            id={id}
           />
         ))
       }
