@@ -23,8 +23,12 @@ export default defineConfig({
     lib: {
       entry: resolve(__dirname, './src/index.ts'),
       name: 'scraph',
+      formats: ['es'],
       fileName: (format) => `scraph.${format}.js`,
     },
+    rollupOptions: {
+      external: ['react'],
+    }
   },
   css: {
     modules: {
