@@ -3,6 +3,7 @@ import JSONTree from 'react-json-tree'
 import { useMultiObservable } from 'use-mobx-observable'
 import { useCommandCenter } from '../../CommandCenter'
 import { WorkspaceIDContext } from '../Workspace'
+import ErrorBoundary from './ErrorBoundary'
 
 export function DebugPanel() {
   let { id } = useContext(WorkspaceIDContext)
@@ -13,25 +14,26 @@ export function DebugPanel() {
   } = useCommandCenter()
 
   useMultiObservable(state, config, graph, mousePos)
-
   return (
-    <JSONTree
-      data={{
-        id: id,
-        mousePos,
-        config,
-        state,
-        undoStack,
-        redoStack,
-        graph,
-      }}
-      hideRoot
-      shouldExpandNode={([key], _, level) => {
-        if (key === 'nodes' || key === 'edges' || key === 'undoStack' || key === 'redoStack' || level > 2) {
-          return false
-        }
-        return true
-      }}
-    />
+    <ErrorBoundary>
+      <JSONTree
+        data={{
+          id: id,
+          mousePos,
+          config,
+          state,
+          undoStack,
+          redoStack,
+          graph,
+        }}
+        hideRoot
+        shouldExpandNode={([key], _, level) => {
+          if (key === 'nodes' || key === 'edges' || key === 'undoStack' || key === 'redoStack' || level > 2) {
+            return false
+          }
+          return true
+        }}
+      />
+    </ErrorBoundary>
   )
 }

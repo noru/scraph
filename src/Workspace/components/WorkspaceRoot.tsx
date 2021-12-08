@@ -16,6 +16,7 @@ import { useCommandCenter, CMD } from '@/CommandCenter'
 import { Toolbar } from './Toolbar'
 import { DebugPanel } from './DebugPanel'
 import { useWorkspaceConfig } from '../store'
+import ErrorBoundary from './ErrorBoundary'
 
 interface Props {
   width?: string | number
@@ -57,33 +58,35 @@ export const WorkspaceRoot = ({
   }, [])
 
   return (
-    <div
-      ref={ref}
-      className={classes['scraph-wrapper']}
-      style={{
-        width,
-        height,
-      }}
-      onMouseMove={onMouseMove}
-    >
-      { children }
-      { wsConfig.devMode &&
-        <>
-          <Toolbar />
-          <Drawer
-            placement="right"
-            width="25vw"
-            onHandleClick={() => setDebugDrawer(!showDebugDrawer)}
-            open={showDebugDrawer}
-            showMask={false}
-            handler={<div className="drawer-handle">&#128030;</div>}
-            getContainer={() => ref.current!}
-            contentWrapperStyle={{ backgroundColor: 'rgb(0, 43, 54)' }}
-          >
-            { showDebugDrawer && <DebugPanel />}
-          </Drawer>
-        </>
-      }
-    </div>
+    <ErrorBoundary>
+      <div
+        ref={ref}
+        className={classes['scraph-wrapper']}
+        style={{
+          width,
+          height,
+        }}
+        onMouseMove={onMouseMove}
+      >
+        { children }
+        { wsConfig.devMode &&
+          <>
+            <Toolbar />
+            <Drawer
+              placement="right"
+              width="25vw"
+              onHandleClick={() => setDebugDrawer(!showDebugDrawer)}
+              open={showDebugDrawer}
+              showMask={false}
+              handler={<div className="drawer-handle">&#128030;</div>}
+              getContainer={() => ref.current!}
+              contentWrapperStyle={{ backgroundColor: 'rgb(0, 43, 54)' }}
+            >
+              { showDebugDrawer && <DebugPanel />}
+            </Drawer>
+          </>
+        }
+      </div>
+    </ErrorBoundary>
   )
 }
