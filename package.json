@@ -1,10 +1,20 @@
+
 {
   "name": "scraph",
   "version": "0.0.0-beta.1",
-  "main": "dist/scraph.es.js",
+  "files": ["dist"],
+  "main": "dist/scraph.umd.js",
+  "module": "./dist/scraph.es.js",
+  "exports": {
+    ".": {
+      "import": "./dist/my-lib.es.js",
+      "require": "./dist/my-lib.umd.js"
+    }
+  },
   "scripts": {
     "demo": "vite",
     "build": "tsc && vite build",
+    "build:demo": "tsc && vite build -c vite.demo.config.ts",
     "lint": "eslint ./src/**/*",
     "lint:fix": "eslint --fix ./src/**/*"
   },

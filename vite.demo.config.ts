@@ -15,11 +15,7 @@ export default defineConfig({
     }
   },
   build: {
-    lib: {
-      entry: resolve(__dirname, './src/index.ts'),
-      name: 'scraph',
-      fileName: (format) => `scraph.${format}.js`,
-    },
+    outDir: 'demo/dist',
   },
   css: {
     modules: {
