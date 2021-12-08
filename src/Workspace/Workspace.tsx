@@ -1,6 +1,5 @@
 import React, {
   useEffect,
-  useMemo,
   useRef,
 } from 'react'
 import classes from '@/style.module.scss'
@@ -11,7 +10,7 @@ import {
 } from './components/graph'
 import { WorkspaceRoot } from './components/WorkspaceRoot'
 import { Defs } from './components/defs/Defs'
-import { getCommandCenter } from '../CommandCenter'
+import { useCommandCenter } from '../CommandCenter'
 import { GraphNode } from './store/graph'
 import { setupD3 } from './setupD3'
 import { CommandCenterPublic } from '@/CommandCenter/CommandCenterPublic'
@@ -42,7 +41,7 @@ export const Workspace = ({
   height = '100%',
 }: Props) => {
   let svgRef = useRef<SVGSVGElement>(null)
-  let cmd = useMemo(() => getCommandCenter(id), [id])
+  let cmd = useCommandCenter(id)
 
   useEffect(() => {
     cmd.setReadonly(readonly)

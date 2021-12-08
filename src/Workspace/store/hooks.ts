@@ -8,44 +8,47 @@ export function useWorkspaceId() {
   return useContext(WorkspaceIDContext).id
 }
 
-export function useWorkspaceConfig(wsId: string = useWorkspaceId()) {
-  let config = useMemo(() => getWorkspaceStore(wsId).config, [wsId])
-  return useObservable(config)
+export function useWorkspaceStore(wsId: string = useWorkspaceId()) {
+  return useMemo(() => getWorkspaceStore(wsId), [wsId])
 }
 
-export function useGraphState(wsId: string = useWorkspaceId()) {
-  let graph = useMemo(() => getWorkspaceStore(wsId).graph, [wsId])
-  return useObservable(graph)
+export function useWorkspaceConfig(wsId?: string) {
+  return useObservable(useWorkspaceStore(wsId).config)
 }
 
-export function useWorkspaceState(wsId: string = useWorkspaceId()) {
-  let config = useMemo(() => getWorkspaceStore(wsId).state, [wsId])
-  return useObservable(config)
+export function useGraphState(wsId?: string) {
+  return useObservable(useWorkspaceStore(wsId).graph)
 }
 
-export function useMousePositionState(wsId: string = useWorkspaceId()) {
-  let mousePos = useMemo(() => getWorkspaceStore(wsId).mousePos, [wsId])
-  return useObservable(mousePos)
+export function useWorkspaceState(wsId?: string) {
+  return useObservable(useWorkspaceStore(wsId).state)
 }
 
-export function useNodeIdSet(wsId: string = useWorkspaceId()) {
-  return useWatch(() => getWorkspaceStore(wsId).graph.nodeIdSet)[0]
+export function useMousePositionState(wsId?: string) {
+  return useObservable(useWorkspaceStore(wsId).mousePos)
 }
 
-export function useEdgeIdSet(wsId: string = useWorkspaceId()) {
-  return useWatch(() => getWorkspaceStore(wsId).graph.edgeIdSet)[0]
+export function useNodeIdSet(wsId?: string) {
+  let graph = useWorkspaceStore(wsId).graph
+  return useWatch(() => graph.nodeIdSet)[0]
 }
 
-export function useNode(id: string, wsId: string = useWorkspaceId()) {
-  let graph = useMemo(() => getWorkspaceStore(wsId).graph, [wsId])
+export function useEdgeIdSet(wsId?: string) {
+  let graph = useWorkspaceStore(wsId).graph
+  return useWatch(() => graph.edgeIdSet)[0]
+}
+
+export function useNode(id: string, wsId?: string) {
+  let graph = useWorkspaceStore(wsId).graph
   return useObservable(() => graph.nodeMap[id] || { id }, [id, graph.nodeMap])
 }
 
-export function useEdge(id: string, wsId: string = useWorkspaceId()) {
-  let graph = useMemo(() => getWorkspaceStore(wsId).graph, [wsId])
+export function useEdge(id: string, wsId?: string) {
+  let graph = useWorkspaceStore(wsId).graph
   return useObservable(() => graph.edgeMap[id] || { id }, [id, graph.edgeMap])
 }
 
-export function useSelectedElement(wsId: string = useWorkspaceId()) {
-  return useObservable(select(getWorkspaceStore(wsId).state, ['selectedElement']))
+export function useSelectedElement(wsId?: string) {
+  let state = useWorkspaceStore(wsId).state
+  return useObservable(select(state, ['selectedElement']))
 }
