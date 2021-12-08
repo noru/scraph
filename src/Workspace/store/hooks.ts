@@ -50,5 +50,5 @@ export function useEdge(id: string, wsId?: string) {
 
 export function useSelectedElement(wsId?: string) {
   let state = useWorkspaceStore(wsId).state
-  return useObservable(select(state, ['selectedElement']))
+  return useObservable(select(state, ['selectedElement'])).selectedElement
 }
