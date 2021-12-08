@@ -1,4 +1,4 @@
-import { useContext, useMemo, useState } from 'react'
+import { useContext, useMemo } from 'react'
 import { getWorkspaceStore } from './workspace'
 import { select, useObservable, useWatch } from 'use-mobx-observable'
 import { WorkspaceIDContext } from '../Workspace'
