@@ -21,4 +21,9 @@ export default defineConfig({
       fileName: (format) => `scraph.${format}.js`
     },
   },
+  css: {
+    modules: {
+      generateScopedName: '[local]',
+    }
+  }
 })

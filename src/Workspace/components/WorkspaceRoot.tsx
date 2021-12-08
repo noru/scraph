@@ -73,11 +73,11 @@ export const WorkspaceRoot = ({
           <Toolbar />
           <Drawer
             placement="right"
+            width="25vw"
             onHandleClick={() => setDebugDrawer(!showDebugDrawer)}
             open={showDebugDrawer}
             showMask={false}
             handler={<div className="drawer-handle">&#128030;</div>}
-            width="25vw"
             getContainer={() => ref.current!}
             contentWrapperStyle={{ backgroundColor: 'rgb(0, 43, 54)' }}
           >
