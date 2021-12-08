@@ -54,11 +54,11 @@ export type Params<T = Payload> = {
 
 type Command = { cmd: CMD, params?: Params }
 
-export type CmdHandler = (this: CommandCenter, cmd: CMD, params?: Params) => void
+export type CmdHandler = (this: CommandCenterPublic, cmd: CMD, params?: Params) => void
 type Subscribers = {
   [cmd in CMD]: CmdHandler[]
 }
-export abstract class CommandCenter {
+export abstract class CommandCenterPublic {
 
   _id: string
   _readonly = false

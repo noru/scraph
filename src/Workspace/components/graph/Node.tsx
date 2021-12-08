@@ -8,7 +8,7 @@ import React, {
 } from 'react'
 import * as d3 from 'd3'
 import { useCommandCenter } from '../../../CommandCenter'
-import { CMD, Params } from '../../../CommandCenter/CommandCenterBase'
+import { CMD, Params } from '../../../CommandCenter/CommandCenterPublic'
 import { isCtrlPressed } from '../../../utils/isCtrlPressed'
 import clsx from 'clsx'
 import classes from '@/style.module.scss'

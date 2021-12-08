@@ -14,6 +14,7 @@ import { Defs } from './components/defs/Defs'
 import { getCommandCenter } from '../CommandCenter'
 import { GraphNode } from './store/graph'
 import { setupD3 } from './setupD3'
+import { CommandCenterPublic } from '@/CommandCenter/CommandCenterPublic'
 
 interface WorkspaceContext {
   id: string
@@ -27,6 +28,7 @@ interface WorkspaceCallbacks {
 interface Props extends Partial<WorkspaceCallbacks> {
   id: string
   readonly: boolean
+  onInit?: (cmd: CommandCenterPublic) => void
   width?: string | number
   height?: string | number
 }
@@ -34,6 +36,7 @@ interface Props extends Partial<WorkspaceCallbacks> {
 export const Workspace = ({
   id,
   renderNode,
+  onInit,
   readonly = false,
   width = '100%',
   height = '100%',
@@ -45,6 +48,7 @@ export const Workspace = ({
     cmd.setReadonly(readonly)
   }, [readonly])
   useEffect(() => {
+    onInit && onInit(cmd)
     return setupD3(id, svgRef.current!, cmd)
   }, [id])
   return (

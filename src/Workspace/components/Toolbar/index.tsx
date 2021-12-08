@@ -1,7 +1,6 @@
 import { getDefaultGraphNode } from '@/Workspace/store/graph'
 import React from 'react'
-import { useCommandCenter } from '../../../CommandCenter'
-import { CMD } from '../../../CommandCenter/CommandCenterBase'
+import { useCommandCenter, CMD } from '@/CommandCenter'
 import { GraphControls } from './GraphControls'
 import { UndoRedo } from './UndoRedo'
 

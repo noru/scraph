@@ -4,7 +4,7 @@ import React, {
 } from 'react'
 import { WorkspaceIDContext } from '../../Workspace'
 import { useCommandCenter } from '../../../CommandCenter'
-import { CMD } from '../../../CommandCenter/CommandCenterBase'
+import { CMD } from '../../../CommandCenter/CommandCenterPublic'
 import { useWorkspaceState } from '@/Workspace/store'
 
 const ZoomStep = 0.02

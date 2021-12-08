@@ -1,7 +1,6 @@
 import React from 'react'
 import { useObservable } from 'use-mobx-observable'
-import { useCommandCenter } from '../../../CommandCenter'
-import { CMD } from '../../../CommandCenter/CommandCenterBase'
+import { CMD, useCommandCenter } from '@/CommandCenter'
 
 export function UndoRedo() {
   let cmd = useCommandCenter()

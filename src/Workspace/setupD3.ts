@@ -3,10 +3,10 @@ import isNumber from 'lodash.isnumber'
 import {
   CMD,
   CmdHandler,
-  CommandCenter,
-} from '@/CommandCenter/CommandCenterBase'
+  CommandCenterPublic,
+} from '@/CommandCenter'
 
-export function setupD3(id: string, svg: SVGElement, cmd: CommandCenter) {
+export function setupD3(id: string, svg: SVGElement, cmd: CommandCenterPublic) {
 
   let root = d3.select(svg)
   let canvas = root.select('g')
