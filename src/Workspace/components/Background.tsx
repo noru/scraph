@@ -1,11 +1,15 @@
 import React, { useContext } from 'react'
-import { useWorkspaceConfig } from '../store'
+import { useWatchWorkspaceConfig } from '../store'
 import { WorkspaceIDContext } from '../Workspace'
 
 export function Background() {
 
   let { id } = useContext(WorkspaceIDContext)
-  let { canvasSize , backgroundGrid } = useWorkspaceConfig(id)
+  let [{ canvasSize , backgroundGrid }] = useWatchWorkspaceConfig(({ canvasSize , backgroundGrid }) => ({
+    canvasSize ,
+    backgroundGrid,
+  }), id)
+
   let center = canvasSize / 2
   let x = -center + 2650
   let y = -center + 1440

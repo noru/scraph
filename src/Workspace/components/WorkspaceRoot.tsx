@@ -15,7 +15,7 @@ import throttle from 'lodash.throttle'
 import { useCommandCenter, CMD } from '@/CommandCenter'
 import { Toolbar } from './Toolbar'
 import { DebugPanel } from './DebugPanel'
-import { useWorkspaceConfig } from '../store'
+import { useWatchWorkspaceConfig } from '../store'
 import ErrorBoundary from './ErrorBoundary'
 
 interface Props {
@@ -28,7 +28,7 @@ export const WorkspaceRoot = ({
 }: PropsWithChildren<Props>) => {
   let ref = useRef<HTMLDivElement>(null)
   let { id } = useContext(WorkspaceIDContext)
-  let wsConfig = useWorkspaceConfig(id)
+  let [devMode] = useWatchWorkspaceConfig(s => s.devMode)
   let [showDebugDrawer, setDebugDrawer] = useState(false)
   let cmd = useCommandCenter()
 
@@ -69,7 +69,7 @@ export const WorkspaceRoot = ({
         onMouseMove={onMouseMove}
       >
         { children }
-        { wsConfig.devMode &&
+        { devMode &&
           <>
             <Toolbar />
             <Drawer

@@ -1,7 +1,6 @@
 import React, {
   ReactNode,
   useCallback,
-  useContext,
   useEffect,
   useLayoutEffect,
   useRef,
@@ -13,8 +12,7 @@ import { isCtrlPressed } from '../../../utils/isCtrlPressed'
 import clsx from 'clsx'
 import classes from '@/style.module.scss'
 import { GraphNode } from '@/Workspace/store/graph'
-import { useNode, useWorkspaceState } from '@/Workspace/store'
-import { WorkspaceIDContext } from '@/Workspace/Workspace'
+import { useNode, useSelectedElement, useWatchWorkspaceState, useWorkspaceState } from '@/Workspace/store'
 
 interface Props {
   id: string
@@ -30,8 +28,7 @@ interface Position {
 
 export function Node({ id, renderNode }: Props) {
   let ref = useRef<SVGGElement>(null)
-  let { id: wsId } = useContext(WorkspaceIDContext)
-  let node = useNode(id, wsId)
+  let node = useNode(id)
   let position = useRef<Position>({
     x: node.x ?? 0,
     y: node.y ?? 0,
@@ -39,7 +36,8 @@ export function Node({ id, renderNode }: Props) {
     offsetY: 0,
   })
   let transform = `translate(${node.x ?? 0}, ${node.y ?? 0}) rotate(0)`
-  let { dragMode, selectedElement } = useWorkspaceState(wsId)
+  let [dragMode] = useWatchWorkspaceState(state => state.dragMode)
+  let selectedElement = useSelectedElement()
   let cmd = useCommandCenter()
 
   let onDrag = useCallback((evt) => {

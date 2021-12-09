@@ -204,7 +204,7 @@ class CommandCenter extends CommandCenterPublic {
     this.redo()
   }
   onMouseMove(_, { payload }) {
-    Object.assign(this._store.mousePos, payload)
+    this._store.state.mousePos = payload
   }
   onHoverElement(_, { payload }) {
     this._store.state.hoverElement = payload

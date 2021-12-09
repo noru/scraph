@@ -9,11 +9,11 @@ export function DebugPanel() {
   let { id } = useContext(WorkspaceIDContext)
   let {
     _store: {
-      state, config, graph, mousePos,
+      state, config, graph,
     }, undoStack, redoStack,
   } = useCommandCenter()
 
-  useMultiObservable(state, config, graph, mousePos)
+  useMultiObservable(state, config, graph)
   return (
     <ErrorBoundary>
       <ReactJson
@@ -21,7 +21,6 @@ export function DebugPanel() {
         indentWidth={2}
         src={{
           id: id,
-          mousePos,
           config,
           state,
           undoStack,
