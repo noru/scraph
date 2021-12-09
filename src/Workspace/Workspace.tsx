@@ -14,18 +14,19 @@ import { useCommandCenter } from '../CommandCenter'
 import { GraphNode } from './store/graph'
 import { setupD3 } from './setupD3'
 import { CommandCenterPublic } from '@/CommandCenter/CommandCenterPublic'
+import { useWorkspaceId } from '.'
 
 interface WorkspaceContext {
   id: string
 }
-export const WorkspaceIDContext = React.createContext<WorkspaceContext>({ id: 'default' })
+export const WorkspaceIDContext = React.createContext<WorkspaceContext>({ id: '' })
 
 interface WorkspaceCallbacks {
   renderNode?: (node: GraphNode) => React.ReactNode
 }
 
 interface Props extends Partial<WorkspaceCallbacks> {
-  id: string
+  id?: string
   readonly: boolean
   onInit?: (cmd: CommandCenterPublic) => void
   width?: string | number
@@ -33,13 +34,18 @@ interface Props extends Partial<WorkspaceCallbacks> {
 }
 
 export const Workspace = ({
-  id,
+  id = useWorkspaceId(),
   renderNode,
   onInit,
   readonly = false,
   width = '100%',
   height = '100%',
 }: Props) => {
+
+  if (!id) {
+    throw Error('[scraph] ID is needed. Either pass it by props or use WorkspaceIDContext to provide one')
+  }
+
   let svgRef = useRef<SVGSVGElement>(null)
   let cmd = useCommandCenter(id)
 
