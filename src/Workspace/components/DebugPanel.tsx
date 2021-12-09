@@ -1,9 +1,9 @@
 import React, { useContext } from 'react'
-import JSONTree from 'react-json-tree'
 import { useMultiObservable } from 'use-mobx-observable'
 import { useCommandCenter } from '../../CommandCenter'
 import { WorkspaceIDContext } from '../Workspace'
 import ErrorBoundary from './ErrorBoundary'
+import ReactJson from 'react-json-view'
 
 export function DebugPanel() {
   let { id } = useContext(WorkspaceIDContext)
@@ -16,8 +16,10 @@ export function DebugPanel() {
   useMultiObservable(state, config, graph, mousePos)
   return (
     <ErrorBoundary>
-      <JSONTree
-        data={{
+      <ReactJson
+        name={null}
+        indentWidth={2}
+        src={{
           id: id,
           mousePos,
           config,
@@ -25,13 +27,6 @@ export function DebugPanel() {
           undoStack,
           redoStack,
           graph,
-        }}
-        hideRoot
-        shouldExpandNode={([key], _, level) => {
-          if (key === 'nodes' || key === 'edges' || key === 'undoStack' || key === 'redoStack' || level > 2) {
-            return false
-          }
-          return true
         }}
       />
     </ErrorBoundary>

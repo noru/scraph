@@ -1,6 +1,6 @@
 {
   "name": "scraph",
-  "version": "0.0.0-beta.9",
+  "version": "0.0.0-beta.11",
   "files": [
     "dist"
   ],
@@ -33,7 +33,7 @@
     "lodash.throttle": "^4.1.1",
     "mobx": "^6.3.8",
     "rc-drawer": "^4.4.3",
-    "react-json-tree": "^0.15.1",
+    "react-json-view": "^1.21.3",
     "svg-intersections": "^0.4.0",
     "use-mobx-observable": "^0.1.5"
   },

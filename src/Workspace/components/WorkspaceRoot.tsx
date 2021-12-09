@@ -80,7 +80,6 @@ export const WorkspaceRoot = ({
               showMask={false}
               handler={<div className="drawer-handle">&#128030;</div>}
               getContainer={() => ref.current!}
-              contentWrapperStyle={{ backgroundColor: 'rgb(0, 43, 54)' }}
             >
               { showDebugDrawer && <DebugPanel />}
             </Drawer>
