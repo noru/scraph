@@ -90,6 +90,7 @@ export function Edge({ id }: PropsWithChildren<Props>) {
   const isSelected = selectedElement?.id === edge.id
   return (
     <g
+      id={edge.id}
       ref={ref}
       className={clsx(classes['scraph-edge-wrapper'])}
       onClick={() => {

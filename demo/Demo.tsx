@@ -11,6 +11,7 @@ function Demo() {
       <WorkspaceIDContext.Provider value={{ id: 'scraph-demo' }}>
         <div className="workspace-wrapper">
           <Workspace
+            id="scraph-demo"
             readonly={false}
             onInit={(cmd) => {
               cmd.dispatch(CMD.InitGraph, { payload: graph })

@@ -9,6 +9,7 @@ export enum CMD {
   Clear = 'Clear',
   CanvasTransform = 'CanvasTransform',
   ZoomToFit = 'ZoomToFit',
+  CenterElement = 'CenterElement',
   CreateNode = 'CreateNode',
   UpdateNode = 'UpdateNode',
   NodeDragEnd = 'NodeDragEnd',

@@ -184,7 +184,7 @@ export function Node({ id, renderNode }: Props) {
   }, [])
 
   return (
-    <g className={clsx(classes['scraph-node-wrapper'])}>
+    <g className={clsx(classes['scraph-node-wrapper'])} id={node.id}>
       <g
         ref={ref}
         className={clsx(node.draggable && classes['scraph-node-draggable'])}

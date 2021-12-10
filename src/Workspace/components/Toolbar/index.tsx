@@ -31,6 +31,15 @@ export function Toolbar() {
         Create Node
       </button>
       <button
+        onClick={() => {
+          let id = prompt('Node id')
+          let payload = { id }
+          cmd.dispatch(CMD.CenterElement, { payload })
+        }}
+      >
+        Center Element
+      </button>
+      <button
         onClick={() => cmd.dispatch(CMD.Clear)}
       >
         Clear

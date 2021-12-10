@@ -46,46 +46,56 @@ export function setupD3(id: string, svg: SVGElement, cmd: CommandCenterPublic) {
       zoom.transform(root, transform)
     }
   }
+  let centerNode = (node) => {
+    if (node?.children.length === 0 || !node?.getBBox) {
+      return
+    }
+    let viewBBox = node.getBBox()
+    let wsConfig = cmd.getWorkspaceConfig()
+    const width = wsConfig.workspaceWidth ?? 1024
+    const height = wsConfig.workspaceHeight ?? 768
+    const minZoom = wsConfig.minZoom || 0
+    const maxZoom = wsConfig.maxZoom || 2
+    const next = {
+      k: (minZoom + maxZoom) / 2,
+      x: 0,
+      y: 0,
+    }
+    if (viewBBox.width > 0 && viewBBox.height > 0) {
+      const dx = viewBBox.width
+      const dy = viewBBox.height
+      const x = viewBBox.x + viewBBox.width / 2
+      const y = viewBBox.y + viewBBox.height / 2
+      next.k = 0.9 / Math.max(dx / width, dy / height)
+      if (next.k < minZoom) {
+        next.k = minZoom
+      } else if (next.k > maxZoom) {
+        next.k = maxZoom
+      }
+      next.x = width / 2 - next.k * x
+      next.y = height / 2 - next.k * y
+    }
+    const t = d3.zoomIdentity.translate(next.x, next.y).scale(next.k)
+    root
+      .transition()
+      .duration(500)
+      .call(zoom.transform, t)
+  }
   let zoomToFit = () => {
     let entities = canvas.select('#graph-entity').node()
-    if (entities && entities.children.length > 0 && entities.getBBox) {
-      let viewBBox = entities.getBBox()
-      let wsConfig = cmd.getWorkspaceConfig()
-      const width = wsConfig.workspaceWidth ?? 1024
-      const height = wsConfig.workspaceHeight ?? 768
-      const minZoom = wsConfig.minZoom || 0
-      const maxZoom = wsConfig.maxZoom || 2
-      const next = {
-        k: (minZoom + maxZoom) / 2,
-        x: 0,
-        y: 0,
-      }
-      if (viewBBox.width > 0 && viewBBox.height > 0) {
-        const dx = viewBBox.width
-        const dy = viewBBox.height
-        const x = viewBBox.x + viewBBox.width / 2
-        const y = viewBBox.y + viewBBox.height / 2
-        next.k = 0.9 / Math.max(dx / width, dy / height)
-        if (next.k < minZoom) {
-          next.k = minZoom
-        } else if (next.k > maxZoom) {
-          next.k = maxZoom
-        }
-        next.x = width / 2 - next.k * x
-        next.y = height / 2 - next.k * y
-      }
-      const t = d3.zoomIdentity.translate(next.x, next.y).scale(next.k)
-      root
-        .transition()
-        .duration(500)
-        .call(zoom.transform, t)
-    }
+    centerNode(entities)
   }
+  let centerElement: CmdHandler = (_, params) => {
+    let element = canvas.select(`#${params?.payload?.id}`).node()
+    centerNode(element)
+  }
+  cmd.subscribe(CMD.CenterElement, centerElement)
   cmd.subscribe(CMD.CanvasTransform, syncFunc)
   cmd.subscribe(CMD.ZoomToFit, zoomToFit)
   root.call(zoom)
 
   return () => {
+    cmd.subscribe(CMD.CenterElement, centerElement)
     cmd.unsubscribe(CMD.CanvasTransform, syncFunc)
     cmd.unsubscribe(CMD.ZoomToFit, zoomToFit)
   }
