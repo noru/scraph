@@ -6,7 +6,6 @@ import { isUndefinedOrNull } from '@drewxiu/utils/lib/is'
 import { useContext } from 'react'
 import { WorkspaceIDContext } from '../Workspace/Workspace'
 import {
-  CMD,
   CmdHandler,
   CommandCenterPublic,
   Params,
@@ -20,6 +19,7 @@ import {
 import { WorkspaceState } from '@/Workspace/store/state'
 import { WorkspaceConfig } from '@/Workspace/store/config'
 import { GraphEdge, GraphNode } from '@/Workspace/store/graph'
+import { CMD } from '.'
 
 // https://github.com/dagrejs/dagre/wiki#configuring-the-layout
 type DagreConfig = Record<string, string | number>

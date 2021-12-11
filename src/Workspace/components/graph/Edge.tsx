@@ -11,7 +11,7 @@ import {
   Point2D,
 } from './utils'
 import { useCommandCenter } from '../../../CommandCenter'
-import { CMD } from '../../../CommandCenter/CommandCenterPublic'
+import { CMD } from '../../../CommandCenter'
 import * as d3 from 'd3'
 import clsx from 'clsx'
 import classes from '@/style.module.scss'

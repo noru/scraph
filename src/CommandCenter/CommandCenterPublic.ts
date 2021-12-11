@@ -1,36 +1,9 @@
 import { getWorkspaceStore, WorkspaceStore } from '@/Workspace/store/workspace'
 import { observable } from 'mobx'
+import { CMD } from './Commands'
 
 const UNDO_SIZE = 30
 type Payload = any
-
-export enum CMD {
-  InitGraph = 'InitGraph',
-  Clear = 'Clear',
-  CanvasTransform = 'CanvasTransform',
-  ZoomToFit = 'ZoomToFit',
-  CenterElement = 'CenterElement',
-  CreateNode = 'CreateNode',
-  UpdateNode = 'UpdateNode',
-  NodeDragEnd = 'NodeDragEnd',
-  CreateEdge = 'CreateEdge',
-  UpdateEdge = 'UpdateEdge',
-  DeleteNode = 'DeleteNode',
-  DeleteEdge = 'DeleteEdge',
-  HoverElement = 'HoverElement',
-  ClickNode = 'ClickNode',
-  SelectNode = 'SelectNode',
-  DeselectNode = 'DeselectNode',
-  ClickEdge = 'ClickEdge',
-  SelectEdge = 'SelectEdge',
-  DeselectEdge = 'DeselectEdge',
-  RecalculateGraphLayout = 'RecalculateGraphLayout',
-  UpdateWorkspaceConfig = 'UpdateWorkspaceConfig',
-  DragModeChange = 'DragModeChange',
-  MouseMove = 'MouseMove',
-  Undo = 'Undo',
-  Redo = 'Redo',
-}
 
 const ReadonlyNotAllowed = new Set([
   CMD.CreateEdge,
