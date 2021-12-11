@@ -112,6 +112,25 @@ class CommandCenter extends CommandCenterPrivate {
     return this._store.graph.nodeMap[id]
   }
 
+  getEdgeById(id?: string) {
+    if (!id) {
+      return null
+    }
+    return this._store.graph.edgeMap[id]
+  }
+
+  selectElement(id: string) {
+    let payload = { id }
+    let element = this.getNodeById(id)
+    if (element) {
+      return this.dispatch(CMD.SelectNode, { payload })
+    }
+    element = this.getEdgeById(id)
+    if (element) {
+      return this.dispatch(CMD.SelectEdge, { payload })
+    }
+  }
+
   getWorkspaceConfig() {
     return this._store.config
   }
