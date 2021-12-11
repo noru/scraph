@@ -5,3 +5,4 @@ configure({
 })
 export * from './Workspace'
 export * from './CommandCenter'
+export { deepSearchObject } from './utils/deepSearchObject'
