@@ -15,11 +15,7 @@ export function useWorkspaceId() {
 
 export function useWorkspaceStore(wsId?: string) {
   let id = useWorkspaceId()
-  wsId ||= id
-  if (!wsId) {
-    throw log.e('Missing workspace id')
-  }
-  return useMemo(() => getWorkspaceStore(wsId!), [wsId])
+  return useMemo(() => getWorkspaceStore(wsId || id), [wsId])
 }
 
 export function useWorkspaceConfig(wsId?: string) {
@@ -83,3 +79,10 @@ export function useEdge(id: string, wsId?: string) {
   let graph = useWorkspaceStore(wsId).graph
   return useObservable(() => graph.edgeMap[id] || { id }, [id, graph.edgeMap])
 }
+
+
+let a = 1
+let b: number | undefined = undefined
+
+b = b || a
+

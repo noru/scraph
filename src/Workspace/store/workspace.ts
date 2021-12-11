@@ -4,6 +4,9 @@ import { _getGraphStateStore } from './graph'
 import { _getWorkspaceStateStore } from './state'
 
 function _getWorkspaceStore(wsId: string) {
+  if (!wsId) {
+    throw Error('Missing workspace id')
+  }
   return {
     config: _getWorkspaceConfigStore(wsId),
     state: _getWorkspaceStateStore(),
