@@ -25,3 +25,15 @@ export enum CMD {
   Undo = 'Undo',
   Redo = 'Redo',
 }
+
+export const ReadonlyNotAllowed = new Set([
+  CMD.CreateEdge,
+  CMD.CreateNode,
+  CMD.UpdateNode,
+  CMD.UpdateEdge,
+  CMD.DeleteEdge,
+  CMD.DeleteNode,
+  CMD.DragModeChange,
+  CMD.Undo,
+  CMD.Redo,
+])

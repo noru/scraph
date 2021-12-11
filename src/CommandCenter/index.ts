@@ -1,3 +1,3 @@
 export * from './CommandCenter'
-export * from './CommandCenterPublic'
-export * from './Commands'
+export * from './types'
+export { CMD } from './Commands'

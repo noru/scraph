@@ -1,231 +1,143 @@
-import {
-  isEmpty,
-  memoize,
-} from 'lodash'
-import { isUndefinedOrNull } from '@drewxiu/utils/lib/is'
+import { memoize } from 'lodash'
 import { useContext } from 'react'
 import { WorkspaceIDContext } from '../Workspace/Workspace'
-import {
-  CmdHandler,
-  CommandCenterPublic,
-  Params,
-} from './CommandCenterPublic'
+import { CommandCenterPrivate } from './CommandCenterPrivate'
+import { CMD, ReadonlyNotAllowed } from './Commands'
+import { CmdHandler, Params } from './types'
+import { defaultLogger as log } from '@/utils/logger'
 
-import ls from 'localstorage-slim'
-import {
-  calculateLayout,
-  Point2D,
-} from '../Workspace/components/graph/utils'
-import { WorkspaceState } from '@/Workspace/store/state'
-import { WorkspaceConfig } from '@/Workspace/store/config'
-import { GraphEdge, GraphNode } from '@/Workspace/store/graph'
-import { CMD } from '.'
+const UNDO_SIZE = 30
 
-// https://github.com/dagrejs/dagre/wiki#configuring-the-layout
-type DagreConfig = Record<string, string | number>
+class CommandCenter extends CommandCenterPrivate {
 
-class CommandCenter extends CommandCenterPublic {
+  id: string
 
   constructor(id: string) {
     super(id)
-    this.initBuildInActions()
+    this.id = id
     window[`__workspace_cmd_${id.replace(/[^a-zA-Z0-9]/g, '')}`] = this
   }
 
-  destroy() {
-    window[`__workspace_cmd_${this._id.replace(/[^a-zA-Z0-9]/g, '')}`] = null
+  devMode(devMode: boolean) {
+    this.dispatch(CMD.UpdateWorkspaceConfig, { payload: { devMode } })
+    log.w(`[CommandCenter] Set dev mode ${devMode ? 'ON' : 'OFF'}`)
   }
 
-  initBuildInActions() {
-    this.subscribe(CMD.Clear, this.onClear as CmdHandler)
-    this.subscribe(CMD.InitGraph, this.onInitGraph as CmdHandler)
-    this.subscribe(CMD.CanvasTransform, this.onCanvasTransform as CmdHandler)
-    this.subscribe(CMD.UpdateWorkspaceConfig, this.onUpdateWsConfig as CmdHandler)
-    this.subscribe(CMD.RecalculateGraphLayout, this.onCalculateGraphLayout as CmdHandler)
-    this.subscribe(CMD.DeleteNode, this.onDeleteNode as CmdHandler)
-    this.subscribe(CMD.CreateNode, this.onUpsertNode as CmdHandler)
-    this.subscribe(CMD.UpdateNode, this.onUpsertNode as CmdHandler)
-    this.subscribe(CMD.DeleteEdge, this.onDeleteEdge as CmdHandler)
-    this.subscribe(CMD.SelectNode, this.onSelectNode as CmdHandler)
-    this.subscribe(CMD.DeselectNode, this.onDeselectNode as CmdHandler)
-    this.subscribe(CMD.CreateEdge, this.onUpsertEdge as CmdHandler)
-    this.subscribe(CMD.UpdateEdge, this.onUpsertEdge as CmdHandler)
-    this.subscribe(CMD.SelectEdge, this.onSelectEdge as CmdHandler)
-    this.subscribe(CMD.DeselectEdge, this.onDeselectEdge as CmdHandler)
-    this.subscribe(CMD.MouseMove, this.onMouseMove as CmdHandler)
-    this.subscribe(CMD.DragModeChange, this.onDragMode as CmdHandler)
-    this.subscribe(CMD.HoverElement, this.onHoverElement as CmdHandler)
-    this.subscribe(CMD.Undo, this.onUndo as CmdHandler)
-    this.subscribe(CMD.Redo, this.onRedo as CmdHandler)
+  setReadonly(readonly: boolean) {
+    this._readonly = readonly
   }
 
-  onClear(_) {
-    this._store.graph.nodes.length = 0
-    this._store.graph.edges.length = 0
+  subscribe(cmd: CMD, ...handlers: CmdHandler[]) {
+    handlers.forEach(h => this._subscribers[cmd].push(h))
+    return () => handlers.map(h => {
+      return () => this.unsubscribe(cmd, h)
+    }).forEach(f => f())
   }
 
-  onInitGraph(_, { payload: { nodes, edges } }) {
-    if (isEmpty(nodes)) {
+  unsubscribe(cmd: CMD, ...handlers: CmdHandler[]) {
+    let callbacks = this._subscribers[cmd]
+    this._subscribers[cmd] = callbacks.filter(func => handlers.indexOf(func) === -1)
+  }
+
+  exec(cmd: CMD, params?: Params<unknown>) {
+    if (this._readonly && !this.isCommandAllowed(cmd)) {
       return
     }
-    if (isUndefinedOrNull(nodes[0].x)) {
-      let graph = calculateLayout(nodes, edges)
-      nodes = nodes.map(n => {
-        let { x, y } = graph.node(n.id)
-        return {
-          ...n,
-          x,
-          y,
-        }
+    log.d(`[CommandCenter] CMD ${cmd} executing`, params)
+    this._subscribers[cmd].forEach((cb) => {
+      try {
+        cb.call(this, cmd, params)
+      } catch (e) {
+        log.e(`[CommandCenter] CMD ${cmd} error in executing subscriber`, cb, e)
+      }
+    })
+    if (params?.undo) {
+      if (this.undoStack.length === UNDO_SIZE) {
+        this.undoStack.unshift()
+      }
+      this.undoStack.push({
+        cmd,
+        params,
+      })
+      !params.isRedo && (this.redoStack.length = 0)
+    }
+  }
+
+  dispatch(cmd: CMD, params?: Params<unknown>, delay = 0) {
+    setTimeout(() => this.exec(cmd, params), delay)
+  }
+
+  undo() {
+    let action = this.undoStack[this.undoStack.length - 1]
+    if (!action) {
+      return
+    }
+    let { params, cmd } = action
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      params!.undo!.call(this, cmd, params)
+      this.undoStack.pop()
+      this.redoStack.push(action)
+    } catch (e) {
+      log.e(`[CommandCenter] Undo CMD ${cmd} failed`)
+      throw e
+    }
+  }
+
+  redo() {
+    let action = this.redoStack[this.redoStack.length - 1]
+    if (!action) {
+      return
+    }
+    let { params, cmd } = action
+    if (params?.redo) {
+      params.redo.call(this, cmd, params)
+      this.redoStack.pop()
+      this.redoStack.push({
+        cmd,
+        params,
+      })
+    } else {
+      this.exec(cmd, {
+        ...params!,
+        isRedo: true,
       })
     }
-    nodes.forEach(payload => {
-      this.onUpsertNode(_, { payload })
-    })
-    edges.forEach(payload => {
-      this.onUpsertEdge(_, { payload })
-    })
-    setTimeout(() => this.dispatch(CMD.ZoomToFit))
   }
 
-  onCanvasTransform(_: CMD, { payload }: Params<Partial<WorkspaceState>>) {
-    if (!isUndefinedOrNull(payload.scale)) {
-      let { maxZoom, minZoom } = this._store.config
-      if (payload.scale > maxZoom) {
-        payload.scale = maxZoom
-      }
-      if (payload.scale! < minZoom) {
-        payload.scale = minZoom
-      }
+  getNodeById(id?: string) {
+    if (!id) {
+      return null
     }
-    Object.assign(this._store.state, payload)
+    return this._store.graph.nodeMap[id]
   }
 
-  onUpdateWsConfig(_: CMD, { payload }: Params<Partial<WorkspaceConfig>>) {
-    Object.assign(this._store.config, payload)
-    ls.set('workspace-config-' + this._id, this._store.config)
+  getWorkspaceConfig() {
+    return this._store.config
   }
 
-  onCalculateGraphLayout(_: CMD, { payload }: Params<DagreConfig> = { payload: {} }) {
-
-    let { nodes, edges } = this._store.graph
-    let graph = calculateLayout(
-      nodes.map(n => ({
-        id: n.id,
-        width: n.width ?? 0,
-        height: n.height ?? 0,
-      })),
-      edges.map(e => ({
-        source: e.source,
-        target: e.target,
-      })),
-      payload,
-    )
-    graph.nodes().forEach(id => {
-      let { x, y } = graph.node(id)
-      let payload = {
-        id,
-        x,
-        y,
-      }
-      this.exec(CMD.UpdateNode, { payload })
-    })
+  getWorkspaceInfo() {
+    return this._store.state
   }
 
-  onDeleteNode(_: CMD, { payload }: Params<string>) {
-    let node = this._store.graph.nodeMap[payload]
-    this._store.graph.nodes['remove'](node) // todo, proper remove element
-    if (this._store.state.selectedElement?.id === payload) {
-      this._store.state.selectedElement = null
+  isCommandAllowed(cmd: CMD) {
+    if (this._readonly && ReadonlyNotAllowed.has(cmd)) {
+      return false
     }
+    return true
   }
 
-  onUpsertNode(_: CMD, { payload }: Params<GraphNode>) {
-    if (isUndefinedOrNull(payload.id)) {
-      throw Error(`Invalid node ID: ${payload.id}`)
-    }
-    let node = this._store.graph.nodeMap[payload.id]
-    if (node) {
-      Object.assign(node, payload)
-    } else {
-      if (isUndefinedOrNull(payload.x) || isUndefinedOrNull(payload.y)) {
-        let { x, y } = this._getNodeInitPosition(payload.width, payload.height)
-        payload.x = x
-        payload.y = y
-      }
-      this._store.graph.nodes.push(payload)
-    }
+  destroy() {
+    window[`__workspace_cmd_${this.id.replace(/[^a-zA-Z0-9]/g, '')}`] = null
   }
 
-  onSelectNode(_: CMD, { payload }: Params<GraphNode>) {
-    this._store.state.selectedElement = {
-      id: payload.id,
-      type: 'node',
-    }
-  }
-
-  onDeselectNode(_: CMD, { payload }: Params<GraphNode>) {
-    this.clearSelection()
-  }
-
-  onUpsertEdge(_: CMD, { payload }: Params<GraphEdge>) {
-    if (!payload.id) {
-      throw Error(`Invalid edge ID: ${payload.id}`)
-    }
-    let edge = this._store.graph.edgeMap[payload.id]
-    if (edge) {
-      Object.assign(edge, payload)
-    } else {
-      this._store.graph.edges.push(payload)
-    }
-  }
-
-  onDeleteEdge(_: CMD, { payload }: Params<string>) {
-    let edge = this._store.graph.edgeMap[payload]
-    this._store.graph.edges['remove'](edge)
-    if (this._store.state.selectedElement?.id === payload) {
-      this._store.state.selectedElement = null
-    }
-  }
-
-  onSelectEdge(_: CMD, { payload }: Params<GraphEdge>) {
-    this._store.state.selectedElement = {
-      id: payload.id,
-      type: 'edge',
-    }
-  }
-  onDeselectEdge(_: CMD, { payload }: Params<GraphEdge>) {
-    this.clearSelection()
-  }
-  onUndo() {
-    this.undo()
-  }
-  onRedo() {
-    this.redo()
-  }
-  onMouseMove(_, { payload }) {
-    this._store.state.mousePos = payload
-  }
-  onHoverElement(_, { payload }) {
-    this._store.state.hoverElement = payload
-  }
-  onDragMode(_, { payload }) {
-    this._store.state.dragMode = payload
-  }
   clearSelection() {
     this._store.state.selectedElement = null
-  }
-  _getNodeInitPosition(width = 0, height = 0): Point2D {
-    let { x, y } = this.getWorkspaceCenter()
-    return {
-      x: x - width / 2,
-      y: y - height / 2,
-    }
   }
 }
 
 const getCommandCenter = memoize((id: string) => {
-  return new CommandCenter(id) as CommandCenterPublic
+  return new CommandCenter(id) as CommandCenter
 })
 
 function useCommandCenter(id?: string) {

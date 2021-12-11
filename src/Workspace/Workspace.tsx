@@ -10,10 +10,9 @@ import {
 } from './components/graph'
 import { WorkspaceRoot } from './components/WorkspaceRoot'
 import { Defs } from './components/defs/Defs'
-import { useCommandCenter } from '../CommandCenter'
+import { CommandCenter, useCommandCenter } from '../CommandCenter'
 import { GraphNode } from './store/graph'
 import { setupD3 } from './setupD3'
-import { CommandCenterPublic } from '@/CommandCenter/CommandCenterPublic'
 import { useWorkspaceId } from '.'
 
 interface WorkspaceContext {
@@ -28,13 +27,13 @@ interface WorkspaceCallbacks {
 interface Props extends Partial<WorkspaceCallbacks> {
   id?: string
   readonly: boolean
-  onInit?: (cmd: CommandCenterPublic) => void
+  onInit?: (cmd: CommandCenter) => void
   width?: string | number
   height?: string | number
 }
 
 export const Workspace = ({
-  id = useWorkspaceId(),
+  id,
   renderNode,
   onInit,
   readonly = false,
@@ -42,7 +41,9 @@ export const Workspace = ({
   height = '100%',
 }: Props) => {
 
-  if (!id) {
+  let idFromCtx = useWorkspaceId()
+  let wsId = id || idFromCtx
+  if (!wsId) {
     throw Error('[scraph] ID is needed. Either pass it by props or use WorkspaceIDContext to provide one')
   }
 
@@ -54,10 +55,10 @@ export const Workspace = ({
   }, [readonly])
   useEffect(() => {
     onInit && onInit(cmd)
-    return setupD3(id, svgRef.current!, cmd)
-  }, [id])
+    return setupD3(wsId, svgRef.current!, cmd)
+  }, [wsId])
   return (
-    <WorkspaceIDContext.Provider value={{ id }}>
+    <WorkspaceIDContext.Provider value={{ id: wsId }}>
       <WorkspaceRoot
         width={width}
         height={height}
