@@ -13,8 +13,13 @@ export function useWorkspaceId() {
   return useContext(WorkspaceIDContext).id
 }
 
-export function useWorkspaceStore(wsId: string = useWorkspaceId()) {
-  return useMemo(() => getWorkspaceStore(wsId), [wsId])
+export function useWorkspaceStore(wsId?: string) {
+  let id = useWorkspaceId()
+  wsId ||= id
+  if (!wsId) {
+    throw log.e('Missing workspace id')
+  }
+  return useMemo(() => getWorkspaceStore(wsId!), [wsId])
 }
 
 export function useWorkspaceConfig(wsId?: string) {
