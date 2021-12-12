@@ -13,7 +13,7 @@ export const graph = {
     },
     {
       id: 'a',
-      x: 458.5,
+      x: 358.5,
       y: 448,
       width: 90,
       height: 90,

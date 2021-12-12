@@ -61,11 +61,11 @@ export function setupD3(id: string, svg: SVGElement, cmd: CommandCenter) {
       x: 0,
       y: 0,
     }
-    if (viewBBox.width > 0 && viewBBox.height > 0) {
+    if (viewBBox.width > 0 || viewBBox.height > 0) {
       const dx = viewBBox.width
       const dy = viewBBox.height
-      const x = viewBBox.x + viewBBox.width / 2
-      const y = viewBBox.y + viewBBox.height / 2
+      const x = viewBBox.x + dx / 2
+      const y = viewBBox.y + dy / 2
       next.k = 0.9 / Math.max(dx / width, dy / height)
       if (next.k < minZoom) {
         next.k = minZoom
