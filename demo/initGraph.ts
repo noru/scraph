@@ -1,6 +1,17 @@
 export const graph = {
   nodes: [
     {
+      id: '0a',
+      x: 358.5,
+      y: 248,
+      width: 90,
+      height: 90,
+      draggable: true,
+      connectable: true,
+      selectable: true,
+      selected: false,
+    },
+    {
       id: 'a',
       x: 458.5,
       y: 448,
@@ -35,6 +46,11 @@ export const graph = {
     },
   ],
   edges: [
+    {
+      id: '0a-a',
+      source: '0a',
+      target: 'a',
+    },
     {
       id: 'a-b',
       source: 'a',

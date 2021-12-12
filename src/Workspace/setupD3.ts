@@ -86,7 +86,7 @@ export function setupD3(id: string, svg: SVGElement, cmd: CommandCenter) {
     centerNode(entities)
   }
   let centerElement: CmdHandler = (_, params) => {
-    let element = canvas.select(`#${params?.payload?.id}`).node()
+    let element = canvas.select(`#_${params?.payload?.id}`).node()
     centerNode(element)
   }
   cmd.subscribe(CMD.CenterElement, centerElement)
