@@ -49,8 +49,8 @@ export function deepSearchObject(data: any, query: Lowercase<string>, visited = 
   return isEmpty(result) ? null : result
 }
 
-function isMatch(query: Lowercase<string>, target: any) {
-  return String(target).toLowerCase().indexOf(query) > -1
+function isMatch(query: Lowercase<string> = '', target: any) {
+  return String(target).toLowerCase().indexOf(query.toLocaleLowerCase()) > -1
 }
 
 function isEmpty(target: any) {
