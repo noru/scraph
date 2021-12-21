@@ -163,16 +163,19 @@ export function Node({ id, renderNode }: Props) {
   }, [node.id])
 
   useEffect(() => {
+    let instance = d3.select(ref.current)
+      .on('mouseenter', () => setHoverNode(node.id))
+      .on('mouseleave', () => setHoverNode(null))
+    if (!node.draggable) {
+      return
+    }
     const dragFunc = d3
       .drag()
       .on('drag', onDrag)
       .on('start', onDragStart)
       .on('end', onDragEnd)
-    d3.select(ref.current)
-      .on('mouseenter', () => setHoverNode(node.id))
-      .on('mouseleave', () => setHoverNode(null))
-      .call(dragFunc)
-  }, [onDrag])
+    instance.call(dragFunc)
+  }, [node.draggable])
 
   useLayoutEffect(() => {
     let { width, height } = d3.select(ref.current).node().getBBox()
@@ -285,15 +288,6 @@ function Overlay({ node, show, connecting, onConnectionStart, onConnection, onCo
       ref={ref}
       transform={transform}
     >
-      <rect
-        x={-overlay.current.padding}
-        y={-overlay.current.padding}
-        width={node.width + overlay.current.padding * 2}
-        height={node.height + overlay.current.padding * 2}
-        stroke="transparent"
-        strokeWidth={Math.max(20 / scale, 20)}
-        fill="none"
-      />
       { 
         (show || borderHover) &&
         <rect
@@ -306,16 +300,29 @@ function Overlay({ node, show, connecting, onConnectionStart, onConnection, onCo
           fill="none"
         />
       }
-      <circle
-        ref={anchorRef}
-        r={overlay.current.anchorR / scale}
-        style={{ cursor: 'pointer', display: (connecting || borderHover) ? undefined : 'none' }}
-        fill='white'
-        stroke='grey'
-        strokeWidth={overlay.current.anchorStrokeWidth / scale}
-        cx={anchorPos.x}
-        cy={anchorPos.y}
-      />
+      { node.connectable && 
+        <>
+          <rect
+            x={-overlay.current.padding}
+            y={-overlay.current.padding}
+            width={node.width + overlay.current.padding * 2}
+            height={node.height + overlay.current.padding * 2}
+            stroke="transparent"
+            strokeWidth={Math.max(20 / scale, 20)}
+            fill="none"
+          />
+          <circle
+            ref={anchorRef}
+            r={overlay.current.anchorR / scale}
+            style={{ cursor: 'pointer', display: (connecting || borderHover) ? undefined : 'none' }}
+            fill='white'
+            stroke='grey'
+            strokeWidth={overlay.current.anchorStrokeWidth / scale}
+            cx={anchorPos.x}
+            cy={anchorPos.y}
+          />
+        </>
+      }
     </g>
     :
     null
