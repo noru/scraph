@@ -263,7 +263,7 @@ function Overlay({ node, show, connecting, onConnectionStart, onConnection, onCo
         let cx = node.width! / 2
         let cy = node.height! / 2
         let tan = Math.abs((x - cx) / (y - cy))
-        let dx = 100
+        let dx = 1000
         let dy = dx / tan
         x += x > cx ? dx : -dx
         y += y > cy ? dy : -dy
@@ -276,7 +276,7 @@ function Overlay({ node, show, connecting, onConnectionStart, onConnection, onCo
           { x: -padding, y: node.height! + padding },
         ]
         let { points } = intersectLinePolygon(line, poly)
-        setAnchorPos(points[0])
+        points[0] && setAnchorPos(points[0])
       })
 
     let dragFunc = d3.drag()
