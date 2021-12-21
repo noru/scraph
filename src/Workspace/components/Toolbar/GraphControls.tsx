@@ -12,10 +12,9 @@ const ZoomStep = 0.02
 export function GraphControls() {
   let { id } = useContext(WorkspaceIDContext)
   let [wsState] = useWatchWorkspaceState(({
-    dragMode,translateX, translateY, scale,
+    translateX, translateY, scale,
   }) => {
     return {
-      dragMode,
       translateX,
       translateY,
       scale,
@@ -26,32 +25,8 @@ export function GraphControls() {
     cmd.dispatch(CMD.CanvasTransform, { payload })
   }, [id])
 
-  let setDragMode = useCallback((payload) => {
-    cmd.dispatch(CMD.DragModeChange, { payload })
-  }, [id])
-
   return (
     <div style={{ display: 'inline-block' }}>
-      <label>
-        <input
-          type="radio"
-          name="dragMode"
-          value="drag"
-          checked={wsState.dragMode === 'drag'}
-          onChange={(evt) => setDragMode(evt.target.value)}
-        />
-          Drag
-      </label>
-      <label>
-        <input
-          type="radio"
-          name="dragMode"
-          value="connect"
-          checked={wsState.dragMode === 'connect'}
-          onChange={(evt) => setDragMode(evt.target.value)}
-        />
-          Connect
-      </label>
       <span>
         <button onClick={() => transform({
           translateX: wsState.translateX,

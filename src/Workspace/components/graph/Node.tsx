@@ -4,160 +4,161 @@ import React, {
   useEffect,
   useLayoutEffect,
   useRef,
+  useState,
 } from 'react'
 import * as d3 from 'd3'
 import { useCommandCenter } from '../../../CommandCenter'
 import { CMD, Params } from '../../../CommandCenter'
-import { isCtrlPressed } from '../../../utils/isCtrlPressed'
 import clsx from 'clsx'
 import classes from '@/style.module.scss'
 import { GraphNode } from '@/Workspace/store/graph'
 import { useNode, useSelectedElement, useWatchWorkspaceState, useWorkspaceState } from '@/Workspace/store'
+import { intersectLinePolygon, Line2D, Point2D } from './utils'
+import { useObservable } from 'use-mobx-observable'
+import { TempEdge } from './Edge'
 
 interface Props {
   id: string
   renderNode?: (node: GraphNode) => ReactNode
 }
 
-interface Position {
-  x: number
-  y: number
-  offsetX: number
-  offsetY: number
-}
-
 export function Node({ id, renderNode }: Props) {
   let ref = useRef<SVGGElement>(null)
   let node = useNode(id)
-  let position = useRef<Position>({
-    x: node.x ?? 0,
-    y: node.y ?? 0,
+  let position  = useObservable(() => ({
+    showOverlay: false,
+    connecting: false,
+    get x() {
+      return node.x ?? 0
+    },
+    get y() {
+      return node.y ?? 0
+    },
     offsetX: 0,
     offsetY: 0,
-  })
-  let transform = `translate(${node.x ?? 0}, ${node.y ?? 0}) rotate(0)`
-  let [dragMode] = useWatchWorkspaceState(state => state.dragMode)
+    get transform() {
+      return `translate(${this.x ?? 0}, ${this.y ?? 0}) rotate(0)`
+    }
+  }))
   let selectedElement = useSelectedElement()
   let cmd = useCommandCenter()
 
   let onDrag = useCallback((evt) => {
-    if (dragMode === 'drag' && !isCtrlPressed(evt.sourceEvent)) {
-      let pos = position.current
-      let payload = {
-        id: node.id,
-        x: evt.x + pos.offsetX,
-        y: evt.y + pos.offsetY,
-      }
-      cmd.dispatch(CMD.UpdateNode, { payload })
-    } else { // connect
-      let payload = {
-        id: 'temp-edge',
-        end: {
-          x: evt.x,
-          y: evt.y,
-        },
-      }
-      cmd.dispatch(CMD.UpdateEdge, { payload })
+    let payload = {
+      id: node.id,
+      x: evt.x + position.offsetX,
+      y: evt.y + position.offsetY,
     }
-  }, [id, node.id, node.x, node.y, dragMode])
+    cmd.dispatch(CMD.UpdateNode, { payload })
+  }, [id, node.id])
 
   let onDragStart = useCallback((evt) => {
-    if (dragMode === 'drag' && !isCtrlPressed(evt.sourceEvent)) {
-      position.current = {
-        x: node.x ?? 0,
-        y: node.y ?? 0,
-        offsetX: (node.x ?? 0) - evt.x,
-        offsetY: (node.y ?? 0) - evt.y,
-      }
-    } else {
-      let payload = {
-        id: 'temp-edge',
-        source: node.id,
-        target: 'unset',
-        start: {
-          x: evt.x,
-          y: evt.y,
-        },
-        end: {
-          x: evt.x,
-          y: evt.y,
-        },
-      }
-      cmd.dispatch(CMD.CreateEdge, { payload })
-    }
+    Object.assign(position, {
+      offsetX: (node.x ?? 0) - evt.x,
+      offsetY: (node.y ?? 0) - evt.y,
+    })
     // move current element to the top
     // fixme: without setTimeout, onClick will stop working, why?
     setTimeout(() => {
       ref.current?.parentElement?.parentElement?.appendChild(ref.current.parentElement)
     }, 200)
-  }, [node.id, node.x, node.y, dragMode])
+  }, [node.id, node.x, node.y])
 
   let onDragEnd = useCallback((evt) => {
-    if (dragMode === 'drag' && !isCtrlPressed(evt.sourceEvent)) {
-      if (
-        Math.abs(evt.x + position.current.offsetX - position.current.x) < 4 &&
-        Math.abs(evt.y + position.current.offsetY - position.current.y) < 4
-      ) {
-        return // skip micro movement
-      }
-      cmd.dispatch(CMD.NodeDragEnd, {
-        payload: {
-          dragStartPos: { ...position.current },
-          dragEndPos: {
-            x: evt.x + position.current.offsetX,
-            y: evt.y + position.current.offsetY,
-          },
-        },
-        undo: (_, params?: Params) => {
-          if (!params) {
-            return
-          }
-          let payload = {
-            id: node.id,
-            x: params.payload.dragStartPos.x,
-            y: params.payload.dragStartPos.y,
-          }
-          cmd.dispatch(CMD.UpdateNode, { payload })
-        },
-        redo: (_, params?: Params) => {
-          if (!params) {
-            return
-          }
-          let payload = {
-            id: node.id,
-            x: params.payload.dragEndPos.x,
-            y: params.payload.dragEndPos.y,
-          }
-          cmd.dispatch(CMD.UpdateNode, { payload })
-        },
-      })
-      position.current.offsetX = 0
-      position.current.offsetY = 0
-    } else {
-      let wsInfo = cmd.getWorkspaceInfo()
-      cmd.dispatch(CMD.DeleteEdge, { payload: 'temp-edge' })
-      let target = cmd.getNodeById(wsInfo.hoverElement?.id)
-      if (target && target.id !== node.id) {
-        let payload = {
-          id: `${node.id}-${target.id}`,
-          source: node.id,
-          target: target.id,
-          start: null,
-          end: null,
-        }
-        cmd.dispatch(CMD.CreateEdge, {
-          payload,
-          undo: (_, params) => cmd.dispatch(CMD.DeleteEdge, { payload: params?.payload.id }),
-        })
-      }
+    if (
+      Math.abs(evt.x + position.offsetX - position.x) < 4 &&
+      Math.abs(evt.y + position.offsetY - position.y) < 4
+    ) {
+      return // skip micro movement
     }
-  }, [node.id, dragMode])
+    cmd.dispatch(CMD.NodeDragEnd, {
+      payload: {
+        dragStartPos: { ...position },
+        dragEndPos: {
+          x: evt.x + position.offsetX,
+          y: evt.y + position.offsetY,
+        },
+      },
+      undo: (_, params?: Params) => {
+        if (!params) {
+          return
+        }
+        let payload = {
+          id: node.id,
+          x: params.payload.dragStartPos.x,
+          y: params.payload.dragStartPos.y,
+        }
+        cmd.dispatch(CMD.UpdateNode, { payload })
+      },
+      redo: (_, params?: Params) => {
+        if (!params) {
+          return
+        }
+        let payload = {
+          id: node.id,
+          x: params.payload.dragEndPos.x,
+          y: params.payload.dragEndPos.y,
+        }
+        cmd.dispatch(CMD.UpdateNode, { payload })
+      },
+    })
+    position.offsetX = 0
+    position.offsetY = 0
+  }, [node.id])
+
+
+  let onConnectionStart = useCallback((evt) => {
+    position.connecting = true
+    let payload = {
+      id: TempEdge,
+      source: node.id,
+      target: 'unset',
+      start: {
+        x: evt.x + node.x,
+        y: evt.y + node.y,
+      },
+      end: {
+        x: evt.x + node.x,
+        y: evt.y + node.y,
+      },
+    }
+    cmd.dispatch(CMD.CreateEdge, { payload })
+  }, [node.id, node.x, node.y])
+
+  let onConnection = useCallback((evt) => {
+    let payload = {
+      id: TempEdge,
+      end: {
+        x: evt.x + node.x,
+        y: evt.y + node.y,
+      },
+    }
+    cmd.dispatch(CMD.UpdateEdge, { payload })
+  }, [id, node.id, node.x, node.y])
+
+  let onConnectionEnd = useCallback((_) => {
+    position.connecting = false
+    let wsInfo = cmd.getWorkspaceInfo()
+    cmd.dispatch(CMD.DeleteEdge, { payload: TempEdge })
+    let target = cmd.getNodeById(wsInfo.hoverElement?.id)
+    if (target && target.id !== node.id) {
+      let payload = {
+        id: `${node.id}-${target.id}`,
+        source: node.id,
+        target: target.id,
+        start: null,
+        end: null,
+      }
+      cmd.dispatch(CMD.CreateEdge, {
+        payload,
+        undo: (_, params) => cmd.dispatch(CMD.DeleteEdge, { payload: params?.payload.id }),
+      })
+    }
+  }, [node.id])
 
   let setHoverNode = useCallback((id) => {
-    let payload = id ? {
-      id,
-      type: 'node',
-    } : null
+    position.showOverlay = !!id
+    let payload = id ? { id, type: 'node' } : null
     cmd.exec(CMD.HoverElement, { payload })
   }, [node.id])
 
@@ -188,7 +189,7 @@ export function Node({ id, renderNode }: Props) {
       <g
         ref={ref}
         className={clsx(node.draggable && classes['scraph-node-draggable'])}
-        transform={transform}
+        transform={position.transform}
         onClick={() => {
           cmd.dispatch(CMD.ClickNode, { payload: node })
           if (node.selectable) {
@@ -211,12 +212,112 @@ export function Node({ id, renderNode }: Props) {
           />
         }
       </g>
-      {/* <g transform={transform}>
-        <Overlay
-          width={node.width || 0}
-          height={node.height || 0}
-        />
-      </g> */}
+      <Overlay 
+        node={node} 
+        show={position.showOverlay}
+        connecting={position.connecting}
+        onConnectionStart={onConnectionStart}
+        onConnection={onConnection}
+        onConnectionEnd={onConnectionEnd}
+      />
     </g>
+  )
+}
+
+interface OverlayProps {
+  node: GraphNode
+  show: boolean
+  connecting: boolean
+  onConnectionStart: (evt: any) => void
+  onConnection: (evt: any) => void
+  onConnectionEnd: (evt: any) => void
+}
+function Overlay({ node, show, connecting, onConnectionStart, onConnection, onConnectionEnd }: OverlayProps) {
+  let overlay = useRef({
+    padding: 8,
+    anchorR: 6,
+    anchorStrokeWidth: 4,
+  })
+  let transform = `translate(${node.x ?? 0}, ${node.y ?? 0}) rotate(0)`
+  let ref = useRef<SVGGElement>(null)
+  let anchorRef = useRef<SVGCircleElement>(null)
+  let [scale] = useWatchWorkspaceState(s => s.scale)
+
+  let [borderHover, setHover] = useState(false)
+  let [anchorPos, setAnchorPos] = useState<Point2D>({ x: 0, y: 0})
+  useEffect(() => {
+    d3.select(ref.current)
+      .on('mouseenter', () => setHover(true))
+      .on('mouseleave', () => setHover(false))
+      .on('mousemove', (evt) => {
+        let [x, y] = d3.pointer(evt);
+        let cx = node.width! / 2
+        let cy = node.height! / 2
+        let tan = Math.abs((x - cy) / (y - cy))
+        let dx = 1000
+        let dy = dx / tan
+        x += x > cx ? dx : -dx
+        y += y > cy ? dy : -dy
+        let line = [{ x, y }, { x: cx, y: cy }] as Line2D
+        let padding = overlay.current.padding
+        let poly = [
+          { x: -padding, y: -padding },
+          { x: node.width! + padding, y: -padding },
+          { x: node.width! + padding, y: node.height! + padding},
+          { x: -padding, y: node.height! + padding },
+        ]
+        let { points } = intersectLinePolygon(line, poly)
+        setAnchorPos(points[0])
+      })
+
+    let dragFunc = d3.drag()
+      .on('start', onConnectionStart)
+      .on('drag', onConnection)
+      .on('end', onConnectionEnd)
+    d3.select(anchorRef.current)
+      .call(dragFunc)
+  }, [])
+
+  return (
+    (node.width && node.height) 
+    ?
+    <g 
+      ref={ref}
+      transform={transform}
+    >
+      <rect
+        x={-overlay.current.padding}
+        y={-overlay.current.padding}
+        width={node.width + overlay.current.padding * 2}
+        height={node.height + overlay.current.padding * 2}
+        stroke="transparent"
+        strokeWidth={Math.max(20 / scale, 20)}
+        fill="none"
+      />
+      { 
+        (show || borderHover) &&
+        <rect
+          x={-overlay.current.padding}
+          y={-overlay.current.padding}
+          width={node.width + overlay.current.padding * 2}
+          height={node.height + overlay.current.padding * 2}
+          stroke="#aaa"
+          strokeWidth={2 / scale}
+          fill="none"
+        />
+      }
+      <circle
+        ref={anchorRef}
+        r={overlay.current.anchorR / scale}
+        style={{ cursor: 'pointer', display: (connecting || borderHover) ? undefined : 'none' }}
+        fill='white'
+        stroke='grey'
+        strokeWidth={overlay.current.anchorStrokeWidth / scale}
+        cx={anchorPos.x}
+        cy={anchorPos.y}
+      />
+    </g>
+    :
+    null
   )
 }

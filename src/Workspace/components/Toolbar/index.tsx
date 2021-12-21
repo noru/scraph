@@ -1,11 +1,13 @@
-import { getDefaultGraphNode } from '@/Workspace/store/graph'
 import React from 'react'
+import { getDefaultGraphNode } from '@/Workspace/store/graph'
 import { useCommandCenter, CMD } from '@/CommandCenter'
 import { GraphControls } from './GraphControls'
 import { UndoRedo } from './UndoRedo'
+import { useSelectedElement } from '@/Workspace'
 
 export function Toolbar() {
   let cmd = useCommandCenter()
+  let selected = useSelectedElement()
   return (
     <div style={{
       position: 'absolute',
@@ -39,9 +41,16 @@ export function Toolbar() {
       >
         Center Element
       </button>
-      <button
-        onClick={() => cmd.dispatch(CMD.Clear)}
-      >
+      <button onClick={() => {
+        if (!selected) {
+          return
+        }
+        let id = selected?.id
+        cmd.dispatch(selected.type === 'node' ? CMD.DeleteNode : CMD.DeleteEdge, { payload: id })
+      }}>
+        Delete
+      </button>
+      <button onClick={() => cmd.dispatch(CMD.Clear)}>
         Clear
       </button>
       <button

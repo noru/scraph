@@ -20,7 +20,6 @@ export enum CMD {
   DeselectEdge = 'DeselectEdge',
   RecalculateGraphLayout = 'RecalculateGraphLayout',
   UpdateWorkspaceConfig = 'UpdateWorkspaceConfig',
-  DragModeChange = 'DragModeChange',
   MouseMove = 'MouseMove',
   Undo = 'Undo',
   Redo = 'Redo',
@@ -33,7 +32,6 @@ export const ReadonlyNotAllowed = new Set([
   CMD.UpdateEdge,
   CMD.DeleteEdge,
   CMD.DeleteNode,
-  CMD.DragModeChange,
   CMD.Undo,
   CMD.Redo,
 ])

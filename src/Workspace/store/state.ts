@@ -1,13 +1,14 @@
 import { observable } from 'mobx'
 import { Point2D } from '../components/graph/utils'
 
+export type ElementType = 'node' | 'edge'
+
 export interface WorkspaceState {
   scale: number
   translateX: number
   translateY: number
-  dragMode: 'drag' | 'connect'
-  hoverElement: { id: string, type: string } | null
-  selectedElement: { id: string, type: string } | null
+  hoverElement: { id: string, type: ElementType } | null
+  selectedElement: { id: string, type: ElementType } | null
   mousePos: Point2D
 }
 
@@ -17,7 +18,6 @@ export function _getWorkspaceStateStore(): WorkspaceState {
       scale: 1,
       translateX: 0,
       translateY: 0,
-      dragMode: 'drag',
       hoverElement: null,
       selectedElement: null,
       mousePos: {

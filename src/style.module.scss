@@ -36,9 +36,6 @@
 }
 
 .scraph-node-wrapper {
-  &:hover {
-    filter: url('#shadow1');
-  }
   .scraph-node {
     &.scraph-node-draggable{
       cursor: pointer;

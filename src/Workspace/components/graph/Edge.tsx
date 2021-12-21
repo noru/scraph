@@ -18,10 +18,11 @@ import classes from '@/style.module.scss'
 import { useEdge, useNode, useSelectedElement } from '@/Workspace/store'
 import { GraphNode } from '@/Workspace/store/graph'
 
+export const TempEdge = '__temp__edge__'
+
 interface Props {
   id: string
 }
-
 export function Edge({ id }: PropsWithChildren<Props>) {
   let ref = useRef(null)
   let cmd = useCommandCenter()
@@ -42,8 +43,8 @@ export function Edge({ id }: PropsWithChildren<Props>) {
   let edge = useEdge(id)
   let sourceNode = useNode(edge.source)
   let targetNode = useNode(edge.target)
-  let sourcePos = getNodePos(sourceNode) ?? edge.start
-  let targetPos = getNodePos(targetNode) ?? edge.end
+  let sourcePos = edge.start ?? getNodePos(sourceNode) ?? edge.start
+  let targetPos = edge.end ?? getNodePos(targetNode) ?? edge.end
   if (!sourcePos || !targetPos) {
     console.warn(`[Workspace] Orphan edge found: ${edge.id}`)
     return null
@@ -105,7 +106,7 @@ export function Edge({ id }: PropsWithChildren<Props>) {
     >
       <path
         className={clsx(classes['scraph-edge'], isSelected && 'scraph-edge-selected')}
-        style={{ pointerEvents: edge.id === 'temp-edge' ? 'none' : undefined }}
+        style={{ pointerEvents: edge.id === TempEdge ? 'none' : undefined }}
         d={pathDescription || undefined}
       />
       <path

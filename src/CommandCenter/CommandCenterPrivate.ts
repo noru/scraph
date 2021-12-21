@@ -55,7 +55,6 @@ export abstract class CommandCenterPrivate {
     this.subscribe(CMD.SelectEdge, this.onSelectEdge as CmdHandler)
     this.subscribe(CMD.DeselectEdge, this.onDeselectEdge as CmdHandler)
     this.subscribe(CMD.MouseMove, this.onMouseMove as CmdHandler)
-    this.subscribe(CMD.DragModeChange, this.onDragMode as CmdHandler)
     this.subscribe(CMD.HoverElement, this.onHoverElement as CmdHandler)
     this.subscribe(CMD.Undo, this.onUndo as CmdHandler)
     this.subscribe(CMD.Redo, this.onRedo as CmdHandler)
@@ -210,9 +209,6 @@ export abstract class CommandCenterPrivate {
   }
   private onHoverElement(_, { payload }) {
     this._store.state.hoverElement = payload
-  }
-  private onDragMode(_, { payload }) {
-    this._store.state.dragMode = payload
   }
   private getNodeInitPosition(width = 0, height = 0): Point2D {
     let { x, y } = this.getWorkspaceCenter()
