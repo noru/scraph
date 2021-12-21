@@ -104,7 +104,7 @@ export function Node({ id, renderNode }: Props) {
     })
     position.offsetX = 0
     position.offsetY = 0
-  }, [node.id])
+  }, [node.id, cmd])
 
 
   let onConnectionStart = useCallback((evt) => {
@@ -123,7 +123,7 @@ export function Node({ id, renderNode }: Props) {
       },
     }
     cmd.dispatch(CMD.CreateEdge, { payload })
-  }, [node.id, node.x, node.y])
+  }, [node.id, node.x, node.y, cmd])
 
   let onConnection = useCallback((evt) => {
     let payload = {
@@ -134,12 +134,12 @@ export function Node({ id, renderNode }: Props) {
       },
     }
     cmd.dispatch(CMD.UpdateEdge, { payload })
-  }, [id, node.id, node.x, node.y])
+  }, [id, node.id, node.x, node.y, cmd])
 
   let onConnectionEnd = useCallback((_) => {
     position.connecting = false
     let wsInfo = cmd.getWorkspaceInfo()
-    cmd.dispatch(CMD.DeleteEdge, { payload: TempEdge })
+    cmd.exec(CMD.DeleteEdge, { payload: TempEdge })
     let target = cmd.getNodeById(wsInfo.hoverElement?.id)
     if (target && target.id !== node.id) {
       let payload = {
@@ -154,13 +154,13 @@ export function Node({ id, renderNode }: Props) {
         undo: (_, params) => cmd.dispatch(CMD.DeleteEdge, { payload: params?.payload.id }),
       })
     }
-  }, [node.id])
+  }, [node.id, cmd])
 
   let setHoverNode = useCallback((id) => {
     position.showOverlay = !!id
     let payload = id ? { id, type: 'node' } : null
     cmd.exec(CMD.HoverElement, { payload })
-  }, [node.id])
+  }, [node.id, cmd])
 
   useEffect(() => {
     let instance = d3.select(ref.current)
