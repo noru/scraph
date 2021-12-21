@@ -3,6 +3,7 @@ import { CMD, Workspace, WorkspaceIDContext } from '@/index'
 import { graph } from './initGraph'
 import Drawer from 'rc-drawer'
 import { Inspection } from './components/Inspection'
+import { CustomNode } from './components/CustomNode'
 
 function Demo() {
 
@@ -16,6 +17,7 @@ function Demo() {
             onInit={(cmd) => {
               cmd.dispatch(CMD.InitGraph, { payload: graph })
             }}
+            renderNode={() => <CustomNode text='temp' type='type'/>}
           />
           <Drawer
             placement="left"

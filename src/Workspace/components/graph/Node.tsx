@@ -242,9 +242,9 @@ function Overlay({ node, show, connecting, onConnectionStart, onConnection, onCo
   let ref = useRef<SVGGElement>(null)
   let anchorRef = useRef<SVGCircleElement>(null)
   let [scale] = useWatchWorkspaceState(s => s.scale)
-
   let [borderHover, setHover] = useState(false)
   let [anchorPos, setAnchorPos] = useState<Point2D>({ x: 0, y: 0})
+
   useEffect(() => {
     d3.select(ref.current)
       .on('mouseenter', () => setHover(true))
@@ -253,8 +253,8 @@ function Overlay({ node, show, connecting, onConnectionStart, onConnection, onCo
         let [x, y] = d3.pointer(evt);
         let cx = node.width! / 2
         let cy = node.height! / 2
-        let tan = Math.abs((x - cy) / (y - cy))
-        let dx = 1000
+        let tan = Math.abs((x - cx) / (y - cy))
+        let dx = 100
         let dy = dx / tan
         x += x > cx ? dx : -dx
         y += y > cy ? dy : -dy
