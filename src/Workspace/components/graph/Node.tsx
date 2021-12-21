@@ -175,6 +175,12 @@ export function Node({ id, renderNode }: Props) {
       .on('start', onDragStart)
       .on('end', onDragEnd)
     instance.call(dragFunc)
+    return () => instance
+      .on('mouseenter', null)
+      .on('mouseleave', null)
+      .on('drag', null)
+      .on('start', null)
+      .on('edn', null)
   }, [node.draggable])
 
   useLayoutEffect(() => {
@@ -277,8 +283,15 @@ function Overlay({ node, show, connecting, onConnectionStart, onConnection, onCo
       .on('start', onConnectionStart)
       .on('drag', onConnection)
       .on('end', onConnectionEnd)
-    d3.select(anchorRef.current)
+    let instance = d3.select(anchorRef.current)
       .call(dragFunc)
+
+    return instance
+      .on('mouseenter', null)
+      .on('mouseleave', null)
+      .on('drag', null)
+      .on('start', null)
+      .on('edn', null)
   }, [])
 
   return (
