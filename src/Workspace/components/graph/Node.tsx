@@ -321,7 +321,7 @@ function Overlay({ node, show, connecting, onConnectionStart, onConnection, onCo
             width={node.width + overlay.current.padding * 2}
             height={node.height + overlay.current.padding * 2}
             stroke="transparent"
-            strokeWidth={Math.max(20 / scale, 20)}
+            strokeWidth={Math.max(10 / scale, 10)}
             fill="none"
           />
           <circle
