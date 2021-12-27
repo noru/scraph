@@ -141,7 +141,7 @@ export function Node({ id, renderNode }: Props) {
     let wsInfo = cmd.getWorkspaceInfo()
     cmd.exec(CMD.DeleteEdge, { payload: TempEdge })
     let target = cmd.getNodeById(wsInfo.hoverElement?.id)
-    if (target && target.id !== node.id) {
+    if (target && target.connectable && target.id !== node.id) {
       let payload = {
         id: `${node.id}-${target.id}`,
         source: node.id,
@@ -223,7 +223,7 @@ export function Node({ id, renderNode }: Props) {
       </g>
       <Overlay 
         node={node} 
-        show={position.showOverlay}
+        show={position.showOverlay && !position.connecting}
         connecting={position.connecting}
         onConnectionStart={onConnectionStart}
         onConnection={onConnection}
