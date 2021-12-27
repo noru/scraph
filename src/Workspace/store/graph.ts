@@ -65,3 +65,17 @@ export function getDefaultGraphNode(partial: Partial<GraphNode> & Pick<GraphNode
     ...partial,
   }
 }
+
+export const ConnectingEdgeStore = observable({
+  start: null as (null | Point2D),
+  end: null as (null | Point2D),
+  get exists() {
+    return !!this.start && !!this.end
+  },
+  clear() {
+    this.start = this.end = null
+  },
+}, {
+  start: observable.ref,
+  end: observable.ref,
+}, { autoBind: true })

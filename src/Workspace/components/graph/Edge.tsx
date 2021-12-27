@@ -1,4 +1,6 @@
 import React, {
+  CSSProperties,
+  forwardRef,
   PropsWithChildren,
   useEffect,
   useRef,
@@ -17,8 +19,6 @@ import clsx from 'clsx'
 import classes from '@/style.module.scss'
 import { useEdge, useNode, useSelectedElement } from '@/Workspace/store'
 import { GraphNode } from '@/Workspace/store/graph'
-
-export const TempEdge = '__temp__edge__'
 
 interface Props {
   id: string
@@ -88,34 +88,71 @@ export function Edge({ id }: PropsWithChildren<Props>) {
   let end = intersectLinePolygon(line, targetPolygon).points[0] ?? targetPos
 
   const pathDescription = getLine([start, end])
-  const isSelected = selectedElement?.id === edge.id
+  const selected = selectedElement?.id === edge.id
+
   return (
-    <g
-      id={'_' + edge.id}
-      ref={ref}
-      className={clsx(classes['scraph-edge-wrapper'])}
+    <EdgeInternal 
+      id={id}
+      start={start}
+      end={end}
+      selected={selected}
       onClick={() => {
         let payload = edge
         cmd.dispatch(CMD.ClickEdge, { payload })
-        if (isSelected) {
+        if (selected) {
           cmd.dispatch(CMD.DeselectEdge, { payload })
         } else {
           cmd.dispatch(CMD.SelectEdge, { payload })
         }
       }}
-    >
-      <path
-        className={clsx(classes['scraph-edge'], isSelected && 'scraph-edge-selected')}
-        style={{ pointerEvents: edge.id === TempEdge ? 'none' : undefined }}
-        d={pathDescription || undefined}
-      />
-      <path
-        className={clsx(classes['scraph-edge-hover-pad'])}
-        d={pathDescription || undefined}
-      />
-    </g>
+
+    />
   )
 }
+
+interface EdgeInternalProps {
+  id: string
+  start: Point2D
+  end: Point2D
+  selected?: boolean
+  hoverable?: boolean
+  pathStyles?: CSSProperties
+  onClick?: () => void
+}
+
+export const EdgeInternal = forwardRef<SVGGElement, EdgeInternalProps>(({
+  id,
+  start,
+  end,
+  selected = false,
+  hoverable = true,
+  pathStyles = {},
+  onClick = () => void(0)
+}, ref) => {
+
+  const pathDescription = getLine([start, end])
+
+  return (
+    <g
+      id={'_' + id}
+      ref={ref}
+      className={clsx(classes['scraph-edge-wrapper'])}
+      onClick={onClick}
+    >
+      <path
+        className={clsx(classes['scraph-edge'], selected && 'scraph-edge-selected')}
+        style={pathStyles}
+        d={pathDescription || undefined}
+      />
+      { hoverable &&
+        <path
+          className={clsx(classes['scraph-edge-hover-pad'])}
+          d={pathDescription || undefined}
+        />
+      }
+    </g>
+  )
+})
 
 function getNodeCenter(node: GraphNode): Point2D {
   return {

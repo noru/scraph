@@ -11,11 +11,10 @@ import { useCommandCenter } from '../../../CommandCenter'
 import { CMD, Params } from '../../../CommandCenter'
 import clsx from 'clsx'
 import classes from '@/style.module.scss'
-import { GraphNode } from '@/Workspace/store/graph'
+import { ConnectingEdgeStore, GraphNode } from '@/Workspace/store/graph'
 import { useNode, useSelectedElement, useWatchWorkspaceState, useWorkspaceState } from '@/Workspace/store'
 import { intersectLinePolygon, Line2D, Point2D } from './utils'
 import { useObservable } from 'use-mobx-observable'
-import { TempEdge } from './Edge'
 
 interface Props {
   id: string
@@ -109,37 +108,23 @@ export function Node({ id, renderNode }: Props) {
 
   let onConnectionStart = useCallback((evt) => {
     position.connecting = true
-    let payload = {
-      id: TempEdge,
-      source: node.id,
-      target: 'unset',
-      start: {
-        x: evt.x + node.x,
-        y: evt.y + node.y,
-      },
-      end: {
-        x: evt.x + node.x,
-        y: evt.y + node.y,
-      },
+    ConnectingEdgeStore.start = ConnectingEdgeStore.end = {
+      x: evt.x + node.x,
+      y: evt.y + node.y,
     }
-    cmd.dispatch(CMD.CreateEdge, { payload })
   }, [node.id, node.x, node.y, cmd])
 
   let onConnection = useCallback((evt) => {
-    let payload = {
-      id: TempEdge,
-      end: {
-        x: evt.x + node.x,
-        y: evt.y + node.y,
-      },
+    ConnectingEdgeStore.end = {
+      x: evt.x + node.x,
+      y: evt.y + node.y,
     }
-    cmd.dispatch(CMD.UpdateEdge, { payload })
   }, [id, node.id, node.x, node.y, cmd])
 
   let onConnectionEnd = useCallback((_) => {
     position.connecting = false
     let wsInfo = cmd.getWorkspaceInfo()
-    cmd.exec(CMD.DeleteEdge, { payload: TempEdge })
+    ConnectingEdgeStore.clear()
     let target = cmd.getNodeById(wsInfo.hoverElement?.id)
     if (target && target.connectable && target.id !== node.id) {
       let payload = {
