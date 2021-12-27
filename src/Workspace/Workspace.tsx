@@ -94,6 +94,8 @@ function ConnectingEdge() {
       id="connecting-edge"
       start={ConnectingEdgeStore.start!}
       end={ConnectingEdgeStore.end!}
+      hoverable={false}
+      pathStyles={{ pointerEvents: 'none' }}
     />
   )
 }

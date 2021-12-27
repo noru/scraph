@@ -93,6 +93,7 @@ export function Edge({ id }: PropsWithChildren<Props>) {
   return (
     <EdgeInternal 
       id={id}
+      ref={ref}
       start={start}
       end={end}
       selected={selected}
@@ -105,7 +106,6 @@ export function Edge({ id }: PropsWithChildren<Props>) {
           cmd.dispatch(CMD.SelectEdge, { payload })
         }
       }}
-
     />
   )
 }

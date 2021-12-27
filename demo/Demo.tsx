@@ -17,7 +17,7 @@ function Demo() {
             onInit={(cmd) => {
               cmd.dispatch(CMD.InitGraph, { payload: graph })
             }}
-            renderNode={() => <CustomNode text='temp' type='type'/>}
+            renderNode={(n) => <CustomNode text={n.id} type='type'/>}
           />
           <Drawer
             placement="left"

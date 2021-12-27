@@ -241,7 +241,9 @@ function Overlay({ node, show, connecting, onConnectionStart, onConnection, onCo
 
   useEffect(() => {
     d3.select(ref.current)
-      .on('mouseenter', () => setHover(true))
+      .on('mouseenter', () => {
+        !ConnectingEdgeStore.exists && setHover(true)
+      })
       .on('mouseleave', () => setHover(false))
       .on('mousemove', (evt) => {
         let [x, y] = d3.pointer(evt);
@@ -306,7 +308,7 @@ function Overlay({ node, show, connecting, onConnectionStart, onConnection, onCo
             width={node.width + overlay.current.padding * 2}
             height={node.height + overlay.current.padding * 2}
             stroke="transparent"
-            strokeWidth={Math.max(10 / scale, 10)}
+            strokeWidth={Math.max(16 / (scale * 3), 16)}
             fill="none"
           />
           <circle
