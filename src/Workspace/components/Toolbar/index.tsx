@@ -3,11 +3,13 @@ import { getDefaultGraphNode } from '@/Workspace/store/graph'
 import { useCommandCenter, CMD } from '@/CommandCenter'
 import { GraphControls } from './GraphControls'
 import { UndoRedo } from './UndoRedo'
-import { useSelectedElement } from '@/Workspace'
+import { useSelectedElements, useWatchWorkspaceState } from '@/Workspace'
 
 export function Toolbar() {
   let cmd = useCommandCenter()
-  let selected = useSelectedElement()
+  let selected = useSelectedElements()
+
+  let multiSelect = useWatchWorkspaceState(s => s.multiSelect)[0]
   return (
     <div style={{
       position: 'absolute',
@@ -20,6 +22,15 @@ export function Toolbar() {
       <button onClick={() => cmd.dispatch(CMD.RecalculateGraphLayout)}>
         Calculate Layout
       </button>
+      <label>
+        <input
+          type="checkbox"
+          name="selectionMode"
+          checked={multiSelect}
+          onChange={(evt) => cmd._store.state.multiSelect = evt.target.checked}
+        />
+          MultiSelect
+      </label>
       <button
         onClick={() => {
           let id = prompt('Node id') || 'node-id-' + Date.now()
@@ -42,11 +53,12 @@ export function Toolbar() {
         Center Element
       </button>
       <button onClick={() => {
-        if (!selected) {
+        if (!selected.length) {
           return
         }
-        let id = selected?.id
-        cmd.dispatch(selected.type === 'node' ? CMD.DeleteNode : CMD.DeleteEdge, { payload: id })
+        selected.forEach(e => {
+          cmd.exec(e.type === 'node' ? CMD.DeleteNode : CMD.DeleteEdge, { payload: e.id })
+        })
       }}>
         Delete
       </button>
@@ -55,9 +67,7 @@ export function Toolbar() {
       </button>
       <button
         onClick={() => {
-          let payload = {
-            backgroundGrid: 'dot',
-          }
+          let payload = { backgroundGrid: 'dot' }
           cmd.dispatch(CMD.UpdateWorkspaceConfig, { payload })
         }}
       >
@@ -65,9 +75,7 @@ export function Toolbar() {
       </button>
       <button
         onClick={() => {
-          let payload = {
-            backgroundGrid: 'checker',
-          }
+          let payload = { backgroundGrid: 'checker' }
           cmd.dispatch(CMD.UpdateWorkspaceConfig, { payload })
         }}
       >
@@ -75,9 +83,7 @@ export function Toolbar() {
       </button>
       <button
         onClick={() => {
-          let payload = {
-            backgroundGrid: 'none',
-          }
+          let payload = { backgroundGrid: 'none' }
           cmd.dispatch(CMD.UpdateWorkspaceConfig, { payload })
         }}
       >

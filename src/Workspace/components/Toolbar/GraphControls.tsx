@@ -23,7 +23,7 @@ export function GraphControls() {
   let cmd = useCommandCenter()
   let transform = useCallback((payload) => {
     cmd.dispatch(CMD.CanvasTransform, { payload })
-  }, [id])
+  }, [cmd])
 
   return (
     <div style={{ display: 'inline-block' }}>

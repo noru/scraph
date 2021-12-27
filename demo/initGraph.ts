@@ -9,7 +9,6 @@ export const graph = {
       draggable: false,
       connectable: false,
       selectable: true,
-      selected: false,
     },
     {
       id: 'a',
@@ -20,7 +19,6 @@ export const graph = {
       draggable: true,
       connectable: true,
       selectable: true,
-      selected: false,
     },
     {
       id: 'b',
@@ -31,7 +29,6 @@ export const graph = {
       draggable: true,
       connectable: true,
       selectable: true,
-      selected: false,
     },
     {
       id: 'c',
@@ -42,7 +39,6 @@ export const graph = {
       draggable: true,
       connectable: true,
       selectable: true,
-      selected: false,
     },
   ],
   edges: [

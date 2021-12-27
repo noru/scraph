@@ -1,7 +1,7 @@
 import { calculateLayout, Point2D } from "@/Workspace/components/graph/utils"
 import { WorkspaceConfig } from "@/Workspace/store/config"
 import { GraphNode, GraphEdge } from "@/Workspace/store/graph"
-import { WorkspaceState } from "@/Workspace/store/state"
+import { SelectedElement, WorkspaceState } from "@/Workspace/store/state"
 import { getWorkspaceStore, WorkspaceStore } from "@/Workspace/store/workspace"
 import { isEmpty, isUndefinedOrNull } from "@drewxiu/utils/lib/is"
 import ls from "localstorage-slim"
@@ -136,8 +136,8 @@ export abstract class CommandCenterPrivate {
   private onDeleteNode(_: CMD, { payload }: Params<string>) {
     let node = this._store.graph.nodeMap[payload]
     this._store.graph.nodes['remove'](node) // todo, proper remove element
-    if (this._store.state.selectedElement?.id === payload) {
-      this._store.state.selectedElement = null
+    if (this._store.state.selectedElement.find(i => i.id === payload)) {
+      this._store.state.selectedElement = this._store.state.selectedElement.filter(e => e.id !== payload)
     }
   }
 
@@ -159,14 +159,20 @@ export abstract class CommandCenterPrivate {
   }
 
   private onSelectNode(_: CMD, { payload }: Params<GraphNode>) {
-    this._store.state.selectedElement = {
+    let selected: SelectedElement = {
       id: payload.id,
       type: 'node',
+    }
+    let multiSelect = this._store.state.multiSelect
+    if (multiSelect) {
+      this.addSelected(selected)
+    } else {
+      this._store.state.selectedElement = [selected]
     }
   }
 
   private onDeselectNode(_: CMD, { payload }: Params<GraphNode>) {
-    this.clearSelection()
+    this.removeSelected(payload.id)
   }
 
   private onUpsertEdge(_: CMD, { payload }: Params<GraphEdge>) {
@@ -184,19 +190,38 @@ export abstract class CommandCenterPrivate {
   private onDeleteEdge(_: CMD, { payload }: Params<string>) {
     let edge = this._store.graph.edgeMap[payload]
     this._store.graph.edges['remove'](edge)
-    if (this._store.state.selectedElement?.id === payload) {
-      this._store.state.selectedElement = null
+    if (this._store.state.selectedElement.find(i => i.id === payload)) {
+      this._store.state.selectedElement = this._store.state.selectedElement.filter(e => e.id !== payload)
     }
   }
 
   private onSelectEdge(_: CMD, { payload }: Params<GraphEdge>) {
-    this._store.state.selectedElement = {
+    let selected: SelectedElement = {
       id: payload.id,
       type: 'edge',
     }
+    let multiSelect = this._store.state.multiSelect
+    if (multiSelect) {
+      this.addSelected(selected)
+    } else {
+      this._store.state.selectedElement = [selected]
+    }
   }
   private onDeselectEdge(_: CMD, { payload }: Params<GraphEdge>) {
-    this.clearSelection()
+    this.removeSelected(payload.id)
+  }
+  private findSelectedIndex(id: string) {
+    return this._store.state.selectedElement.findIndex(i => i.id === id)
+  }
+  private addSelected(selected: SelectedElement) {
+    if (this.findSelectedIndex(selected.id) === -1) {
+      this._store.state.selectedElement = [...this._store.state.selectedElement, selected]
+    }
+  }
+  private removeSelected(id: string) {
+    if (this.findSelectedIndex(id) === -1) {
+      this._store.state.selectedElement = this._store.state.selectedElement.filter(i => i.id !== id)
+    }
   }
   private onUndo() {
     this.undo()

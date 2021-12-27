@@ -55,7 +55,7 @@ export function useHoveredElement(wsId?: string) {
   return useWatch(() => state.hoverElement)[0]
 }
 
-export function useSelectedElement(wsId?: string) {
+export function useSelectedElements(wsId?: string) {
   let state = useWorkspaceStore(wsId).state
   return useWatch(() => state.selectedElement)[0]
 }

@@ -7,7 +7,6 @@ const DefaultConfig: WorkspaceConfig = {
   canvasSize: 40960,
   maxZoom: 2,
   minZoom: 0.1,
-  multiSelect: false,
   workspaceWidth: 1024,
   workspaceHeight: 760,
 }
@@ -17,7 +16,6 @@ export interface WorkspaceConfig {
   canvasSize: number,
   maxZoom: number,
   minZoom: number,
-  multiSelect: boolean,
   workspaceWidth: number,
   workspaceHeight: number,
 }

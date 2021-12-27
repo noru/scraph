@@ -7,6 +7,7 @@ const BreakPoint = 25
 interface Props {
   type: string
   text: string
+  selected: boolean
 }
 
 function getColor(type) {
@@ -23,9 +24,10 @@ function getColor(type) {
 export function CustomNode({
   type = '',
   text = '',
+  selected = false,
 }: Props) {
   let labelColor = 'white'
-  let textColor = '#333'
+  let textColor = selected ? '#558ed2' : '#333'
   let color = getColor(type)
   let doubleLine: [string, string] | null = null
   if (text.length > BreakPoint) {

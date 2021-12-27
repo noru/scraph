@@ -151,7 +151,7 @@ class CommandCenter extends CommandCenterPrivate {
   }
 
   clearSelection() {
-    this._store.state.selectedElement = null
+    this._store.state.selectedElement = []
   }
 }
 

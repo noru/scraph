@@ -12,7 +12,7 @@ import { CMD, Params } from '../../../CommandCenter'
 import clsx from 'clsx'
 import classes from '@/style.module.scss'
 import { ConnectingEdgeStore, GraphNode } from '@/Workspace/store/graph'
-import { useNode, useSelectedElement, useWatchWorkspaceState, useWorkspaceState } from '@/Workspace/store'
+import { useNode, useSelectedElements, useWatchWorkspaceState, useWorkspaceState } from '@/Workspace/store'
 import { intersectLinePolygon, Line2D, Point2D } from './utils'
 import { useObservable } from 'use-mobx-observable'
 
@@ -39,7 +39,7 @@ export function Node({ id, renderNode }: Props) {
       return `translate(${this.x ?? 0}, ${this.y ?? 0}) rotate(0)`
     }
   }))
-  let selectedElement = useSelectedElement()
+  let selectedElement = useSelectedElements()
   let cmd = useCommandCenter()
 
   let onDrag = useCallback((evt) => {
@@ -187,7 +187,7 @@ export function Node({ id, renderNode }: Props) {
         onClick={() => {
           cmd.dispatch(CMD.ClickNode, { payload: node })
           if (node.selectable) {
-            if (selectedElement?.id === node.id) {
+            if (selectedElement.find(e => e.id === node.id)) {
               cmd.dispatch(CMD.DeselectNode, { payload: node })
             } else {
               cmd.dispatch(CMD.SelectNode, { payload: node })

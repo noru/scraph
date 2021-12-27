@@ -17,7 +17,7 @@ import { CMD } from '../../../CommandCenter'
 import * as d3 from 'd3'
 import clsx from 'clsx'
 import classes from '@/style.module.scss'
-import { useEdge, useNode, useSelectedElement } from '@/Workspace/store'
+import { useEdge, useNode, useSelectedElements } from '@/Workspace/store'
 import { GraphNode } from '@/Workspace/store/graph'
 
 interface Props {
@@ -39,7 +39,7 @@ export function Edge({ id }: PropsWithChildren<Props>) {
       .on('mouseleave', () => setHoverEdge(null))
     return () => d3.select(ref.current).on('mouseenter', null).on('mouseleave', null)
   }, [])
-  let selectedElement = useSelectedElement()
+  let selectedElement = useSelectedElements()
   let edge = useEdge(id)
   let sourceNode = useNode(edge.source)
   let targetNode = useNode(edge.target)
@@ -87,8 +87,7 @@ export function Edge({ id }: PropsWithChildren<Props>) {
   let start = intersectLinePolygon(line, sourcePolygon).points[0] ?? sourcePos
   let end = intersectLinePolygon(line, targetPolygon).points[0] ?? targetPos
 
-  const pathDescription = getLine([start, end])
-  const selected = selectedElement?.id === edge.id
+  const selected = !!selectedElement.find(e => e.id === edge.id)
 
   return (
     <EdgeInternal 
