@@ -273,7 +273,7 @@ function Overlay({ node, show, connecting, onConnectionStart, onConnection, onCo
     let instance = d3.select(anchorRef.current)
       .call(dragFunc)
 
-    return instance
+    return () => instance
       .on('mouseenter', null)
       .on('mouseleave', null)
       .on('drag', null)
