@@ -27,6 +27,7 @@ export function Node({ id, renderNode }: Props) {
   let position  = useObservable(() => ({
     showOverlay: false,
     connecting: false,
+    dragStart: null as (null | Point2D),
     get x() {
       return node.x ?? 0
     },
@@ -55,6 +56,10 @@ export function Node({ id, renderNode }: Props) {
     Object.assign(position, {
       offsetX: (node.x ?? 0) - evt.x,
       offsetY: (node.y ?? 0) - evt.y,
+      dragStart: {
+        x: node.x,
+        y: node.y,
+      }
     })
     // move current element to the top
     // fixme: without setTimeout, onClick will stop working, why?
@@ -65,11 +70,12 @@ export function Node({ id, renderNode }: Props) {
 
   let onDragEnd = useCallback((evt) => {
     if (
-      Math.abs(evt.x + position.offsetX - position.x) < 4 &&
-      Math.abs(evt.y + position.offsetY - position.y) < 4
+      Math.abs(evt.x + position.offsetX - position.dragStart!.x) < 4 &&
+      Math.abs(evt.y + position.offsetY - position.dragStart!.y) < 4
     ) {
       return // skip micro movement
     }
+    position.dragStart = null
     cmd.dispatch(CMD.NodeDragEnd, {
       payload: {
         dragStartPos: { ...position },
@@ -165,7 +171,7 @@ export function Node({ id, renderNode }: Props) {
       .on('mouseleave', null)
       .on('drag', null)
       .on('start', null)
-      .on('edn', null)
+      .on('end', null)
   }, [node.draggable])
 
   useLayoutEffect(() => {
