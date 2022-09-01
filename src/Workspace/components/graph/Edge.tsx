@@ -1,4 +1,4 @@
-import React, {
+import {
   CSSProperties,
   forwardRef,
   PropsWithChildren,
@@ -17,7 +17,7 @@ import { CMD } from '../../../CommandCenter'
 import * as d3 from 'd3'
 import clsx from 'clsx'
 import classes from '@/style.module.scss'
-import { useEdge, useNode, useSelectedElements } from '@/Workspace/store'
+import { useEdge, useSelectedElements, useWatchNodePos } from '@/Workspace/store'
 import { GraphNode } from '@/Workspace/store/graph'
 
 interface Props {
@@ -41,8 +41,8 @@ export function Edge({ id }: PropsWithChildren<Props>) {
   }, [])
   let selectedElement = useSelectedElements()
   let edge = useEdge(id)
-  let sourceNode = useNode(edge.source)
-  let targetNode = useNode(edge.target)
+  let sourceNode = useWatchNodePos(edge.source) as any
+  let targetNode = useWatchNodePos(edge.target) as any
   let sourcePos = edge.start ?? getNodePos(sourceNode) ?? edge.start
   let targetPos = edge.end ?? getNodePos(targetNode) ?? edge.end
   if (!sourcePos || !targetPos) {

@@ -72,10 +72,23 @@ export function useEdgeIdSet(wsId?: string) {
 
 export function useNode(id: string, wsId?: string) {
   let graph = useWorkspaceStore(wsId).graph
-  return useObservable(() => graph.nodeMap[id] || { id }, [id, graph.nodeMap])
+  return useObservable(() => graph.nodeMap[id] || { id }, [id, wsId])
 }
 
 export function useEdge(id: string, wsId?: string) {
   let graph = useWorkspaceStore(wsId).graph
-  return useObservable(() => graph.edgeMap[id] || { id }, [id, graph.edgeMap])
+  return useObservable(() => graph.edgeMap[id] || { id }, [id, wsId])
+}
+
+export function useWatchNodePos(id: string, wsId?: string) {
+  let graph = useWorkspaceStore(wsId).graph
+
+  return useWatch(() => {
+    let node = graph.nodeMap[id]
+    let x = node?.x
+    let y = node?.y
+    let width = node?.width ?? 250
+    let height = node?.height ?? 90
+    return { x, y, width, height }
+  }, [id, wsId])[0]
 }
