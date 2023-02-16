@@ -12,7 +12,7 @@ import { CMD, Params } from '../../../CommandCenter'
 import clsx from 'clsx'
 import classes from '@/style.module.scss'
 import { ConnectingEdgeStore, GraphNode } from '@/Workspace/store/graph'
-import { useNode, useSelectedElements, useWatchWorkspaceState, useWorkspaceState } from '@/Workspace/store'
+import { useNode, useSelectedElements, useWatchNodePos, useWatchWorkspaceState, useWorkspaceState } from '@/Workspace/store'
 import { intersectLinePolygon, Line2D, Point2D } from './utils'
 import { useObservable } from 'use-mobx-observable'
 
@@ -28,17 +28,8 @@ export function Node({ id, renderNode }: Props) {
     showOverlay: false,
     connecting: false,
     dragStart: null as (null | Point2D),
-    get x() {
-      return node.x ?? 0
-    },
-    get y() {
-      return node.y ?? 0
-    },
     offsetX: 0,
     offsetY: 0,
-    get transform() {
-      return `translate(${this.x ?? 0}, ${this.y ?? 0}) rotate(0)`
-    }
   }))
   let selectedElement = useSelectedElements()
   let cmd = useCommandCenter()
@@ -189,7 +180,7 @@ export function Node({ id, renderNode }: Props) {
       <g
         ref={ref}
         className={clsx(node.draggable && classes['scraph-node-draggable'])}
-        transform={position.transform}
+        transform={`translate(${node.x ?? 0}, ${node.y ?? 0}) rotate(0)`}
         onClick={() => {
           cmd.dispatch(CMD.ClickNode, { payload: node })
           if (node.selectable) {
@@ -284,7 +275,7 @@ function Overlay({ node, show, connecting, onConnectionStart, onConnection, onCo
       .on('mouseleave', null)
       .on('drag', null)
       .on('start', null)
-      .on('edn', null)
+      .on('end', null)
   }, [])
 
   return (

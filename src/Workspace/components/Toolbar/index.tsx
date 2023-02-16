@@ -19,6 +19,44 @@ export function Toolbar() {
       justifyContent: 'center',
     }}
     >
+      <button onClick={() => {
+
+        let nodes = [1,2,3,4,5].map(i => ({
+          id: i + '',
+          x: 0,
+          y: 0,
+          width: 250,
+          height: 90,
+          draggable: true,
+          connectable: true,
+          selectable: true,
+        }))
+        let partial = nodes.map(n => n.id)
+        let edges = [
+          { source: '1', target: '2'}, 
+          {source: '2', target: '3'},
+          {source: '1', target: '4'},
+          {source: '4', target: '5'},
+        ].map(e => {
+          return {
+            ...e,
+            id: `${e.source}---${e.target}`
+          }
+        })
+
+        nodes = cmd._store.graph.nodes.concat(nodes) as any
+        edges = cmd._store.graph.edges.concat(edges) as any
+        nodes.forEach(payload => {
+          cmd.exec(CMD.CreateNode, { payload })
+        })
+        edges.forEach(payload => {
+          cmd.exec(CMD.CreateEdge, { payload })
+        })
+        let payload = { partial }
+        cmd.dispatch(CMD.RecalculateGraphLayout, { payload })
+      }}>
+        test
+      </button>
       <button onClick={() => cmd.dispatch(CMD.RecalculateGraphLayout)}>
         Calculate Layout
       </button>

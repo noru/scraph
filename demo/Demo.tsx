@@ -1,5 +1,5 @@
 import React from 'react'
-import { CMD, CommandCenter, useSelectedElements, Workspace, WorkspaceIDContext } from '@/index'
+import { CMD, useSelectedElements, Workspace, WorkspaceIDContext } from '@/index'
 import { graph } from './initGraph'
 import Drawer from 'rc-drawer'
 import { Inspection } from './components/Inspection'

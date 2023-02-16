@@ -43,7 +43,7 @@ class CommandCenter extends CommandCenterPrivate {
     if (this._readonly && !this.isCommandAllowed(cmd)) {
       return
     }
-    log.d(`[CommandCenter] CMD ${cmd} executing`, params)
+    if (cmd !== CMD.MouseMove) log.d(`[CommandCenter] CMD ${cmd} executing`, params)
     this._subscribers[cmd].forEach((cb) => {
       try {
         cb.call(this, cmd, params)
