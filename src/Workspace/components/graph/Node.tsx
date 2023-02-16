@@ -2,7 +2,6 @@ import React, {
   ReactNode,
   useCallback,
   useEffect,
-  useLayoutEffect,
   useRef,
   useState,
 } from 'react'
@@ -164,16 +163,6 @@ export function Node({ id, renderNode }: Props) {
       .on('start', null)
       .on('end', null)
   }, [node.draggable])
-
-  useLayoutEffect(() => {
-    let { width, height } = d3.select(ref.current).node().getBBox()
-    let payload = {
-      id: node.id,
-      width,
-      height,
-    }
-    cmd.dispatch(CMD.UpdateNode, { payload })
-  }, [])
 
   return (
     <g className={clsx(classes['scraph-node-wrapper'])} id={'_' + node.id}>
