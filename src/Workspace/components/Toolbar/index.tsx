@@ -22,6 +22,9 @@ export function Toolbar() {
       <button onClick={() => cmd.dispatch(CMD.RecalculateGraphLayout)}>
         Calculate Layout
       </button>
+      <button onClick={() => cmd.dispatch(CMD.RecalculateGraphLayout, { payload: { partial: ['0a', 'a'] }})}>
+        Calculate Layout (soft)
+      </button>
       <label>
         <input
           type="checkbox"

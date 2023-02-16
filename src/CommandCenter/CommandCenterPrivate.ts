@@ -10,7 +10,7 @@ import { CMD } from './Commands'
 import { CmdHandler, Command, Params, Subscribers } from './types'
 
 // https://github.com/dagrejs/dagre/wiki#configuring-the-layout
-type DagreConfig = Record<string, string | number>
+type DagreConfig = Record<string, string | number> & { partial?: string[] }
 
 export abstract class CommandCenterPrivate {
   abstract id: string
@@ -110,6 +110,19 @@ export abstract class CommandCenterPrivate {
   private onCalculateGraphLayout(_: CMD, { payload }: Params<DagreConfig> = { payload: {} }) {
 
     let { nodes, edges } = this._store.graph
+    let offsetX: any = null
+    let offsetY: any = null
+    if (payload.partial) {
+      let idSet = new Set(payload.partial)
+      nodes = nodes.filter(n => {
+        if (idSet.has(n.id))
+          return true
+        if (offsetX == null || n.x! < offsetX) offsetX = n.x! - (n.width || 0) / 2
+        if (offsetY == null || n.y! > offsetY) offsetY = n.y! + (n.height || 0) / 2
+        return false
+      })
+      edges = edges.filter(e => idSet.has(e.target) && idSet.has(e.source))
+    }
     let graph = calculateLayout(
       nodes.map(n => ({
         id: n.id,
@@ -123,11 +136,12 @@ export abstract class CommandCenterPrivate {
       payload,
     )
     graph.nodes().forEach(id => {
-      let { x, y } = graph.node(id)
+      let node = graph.node(id)
+      if (!node) return
       let payload = {
         id,
-        x,
-        y,
+        x: node.x + (offsetX || 0),
+        y: node.y + (offsetY || 0) + 150,
       }
       this.exec(CMD.UpdateNode, { payload })
     })
