@@ -57,19 +57,5 @@ export const graph = {
       source: 'a',
       target: 'c',
     },
-    {
-      id: 'o1',
-      source: '-',
-      target: '-',
-    },
-    {
-      id: 'o2',
-      source: '-',
-      target: '-',
-    },
-    {
-      id: 'o3',
-      target: 'b',
-    },
   ],
 }

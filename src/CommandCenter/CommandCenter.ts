@@ -109,14 +109,14 @@ class CommandCenter extends CommandCenterPrivate {
     if (!id) {
       return null
     }
-    return this._store.graph.nodeMap[id]
+    return this._store.graph.nodes.get(id)
   }
 
   getEdgeById(id?: string) {
     if (!id) {
       return null
     }
-    return this._store.graph.edgeMap[id]
+    return this._store.graph.edges.get(id)
   }
 
   selectElement(id: string) {

@@ -25,30 +25,14 @@ export interface GraphEdge {
 }
 
 export interface GraphStateStore {
-  nodes: GraphNode[]
-  edges: GraphEdge[]
-  nodeMap: Record<string, GraphNode>
-  edgeMap: Record<string, GraphEdge>
-  nodeIdSet: Set<string>
-  edgeIdSet: Set<string>
+  nodes: Map<string, GraphNode>
+  edges: Map<string, GraphEdge>
 }
 
 export function _getGraphStateStore(): GraphStateStore {
   return observable<GraphStateStore>({
-    nodes: [],
-    edges: [],
-    get nodeMap() {
-      return keyBy(this.nodes, 'id')
-    },
-    get edgeMap() {
-      return keyBy(this.edges, 'id')
-    },
-    get nodeIdSet() {
-      return new Set<string>(this.nodes.map(n => n.id))
-    },
-    get edgeIdSet() {
-      return new Set<string>(this.edges.map(n => n.id))
-    },
+    nodes: observable.map(),
+    edges: observable.map(),
   }, undefined, { autoBind: true })
 }
 

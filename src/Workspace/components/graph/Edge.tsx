@@ -40,7 +40,7 @@ export function Edge({ id }: PropsWithChildren<Props>) {
     return () => d3.select(ref.current).on('mouseenter', null).on('mouseleave', null)
   }, [])
   let selectedElement = useSelectedElements()
-  let edge = useEdge(id)
+  let edge = useEdge(id) as any
   let sourceNode = useWatchNodePos(edge.source) as any
   let targetNode = useWatchNodePos(edge.target) as any
   let sourcePos = edge.start ?? getNodePos(sourceNode) ?? edge.start

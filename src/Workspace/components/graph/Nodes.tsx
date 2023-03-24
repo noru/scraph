@@ -1,5 +1,5 @@
 import React from 'react'
-import { useNodeIdSet } from '@/Workspace/store'
+import { useWatchGraphState } from '@/Workspace/store'
 import { GraphNode } from '@/Workspace/store/graph'
 import { ReactNode } from 'react'
 import { Node } from './Node'
@@ -9,11 +9,12 @@ interface Props {
 }
 
 export function Nodes({ renderNode }: Props) {
-  let idSet = useNodeIdSet()
+
+  let [keys] = useWatchGraphState((store) => Array.from(store.nodes.keys()))
   return (
     <>
       {
-        Array.from(idSet).map(id => (
+        keys.map(id => (
           <Node
             key={id}
             id={id}

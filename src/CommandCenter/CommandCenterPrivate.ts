@@ -61,8 +61,8 @@ export abstract class CommandCenterPrivate {
   }
 
   private onClear(_) {
-    this._store.graph.nodes.length = 0
-    this._store.graph.edges.length = 0
+    this._store.graph.nodes.clear()
+    this._store.graph.edges.clear()
   }
 
   private onInitGraph(_, { payload: { nodes, edges } }) {
@@ -109,9 +109,12 @@ export abstract class CommandCenterPrivate {
 
   private onCalculateGraphLayout(_: CMD, { payload }: Params<DagreConfig> = { payload: {} }) {
 
-    let { nodes, edges } = this._store.graph
+    let { nodes: nodeMap, edges: edgeMap } = this._store.graph
     let offsetX: any = null
     let offsetY: any = null
+
+    let nodes = Array.from(nodeMap.values())
+    let edges = Array.from(edgeMap.values())
     if (payload.partial) {
       let idSet = new Set(payload.partial)
       nodes = nodes.filter(n => {
@@ -148,8 +151,7 @@ export abstract class CommandCenterPrivate {
   }
 
   private onDeleteNode(_: CMD, { payload }: Params<string>) {
-    let node = this._store.graph.nodeMap[payload]
-    this._store.graph.nodes['remove'](node) // todo, proper remove element
+    this._store.graph.nodes.delete(payload)
     if (this._store.state.selectedElement.find(i => i.id === payload)) {
       this._store.state.selectedElement = this._store.state.selectedElement.filter(e => e.id !== payload)
     }
@@ -159,7 +161,7 @@ export abstract class CommandCenterPrivate {
     if (isUndefinedOrNull(payload.id)) {
       throw Error(`Invalid node ID: ${payload.id}`)
     }
-    let node = this._store.graph.nodeMap[payload.id]
+    let node = this._store.graph.nodes.get(payload.id)
     if (node) {
       Object.assign(node, payload)
     } else {
@@ -168,7 +170,7 @@ export abstract class CommandCenterPrivate {
         payload.x = x
         payload.y = y
       }
-      this._store.graph.nodes.push(payload)
+      this._store.graph.nodes.set(payload.id, payload)
     }
   }
 
@@ -193,17 +195,16 @@ export abstract class CommandCenterPrivate {
     if (!payload.id) {
       throw Error(`Invalid edge ID: ${payload.id}`)
     }
-    let edge = this._store.graph.edgeMap[payload.id]
+    let edge = this._store.graph.edges.get(payload.id)
     if (edge) {
       Object.assign(edge, payload)
     } else {
-      this._store.graph.edges.push(payload)
+      this._store.graph.edges.set(payload.id, payload)
     }
   }
 
   private onDeleteEdge(_: CMD, { payload }: Params<string>) {
-    let edge = this._store.graph.edgeMap[payload]
-    this._store.graph.edges['remove'](edge)
+    this._store.graph.edges.delete(payload)
     if (this._store.state.selectedElement.find(i => i.id === payload)) {
       this._store.state.selectedElement = this._store.state.selectedElement.filter(e => e.id !== payload)
     }

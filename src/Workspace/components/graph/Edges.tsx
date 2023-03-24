@@ -1,14 +1,14 @@
 import React from 'react'
-import { useEdgeIdSet } from '@/Workspace/store'
+import { useWatchGraphState } from '@/Workspace/store'
 import { Edge } from './Edge'
 
 export function Edges() {
-  let idSet = useEdgeIdSet()
+  let [keys] = useWatchGraphState((store) => Array.from(store.edges.keys()))
 
   return (
     <>
       {
-        Array.from(idSet).map(id => (
+        keys.map(id => (
           <Edge
             key={id}
             id={id}

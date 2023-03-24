@@ -60,31 +60,21 @@ export function useSelectedElements(wsId?: string) {
   return useWatch(() => state.selectedElement)[0]
 }
 
-export function useNodeIdSet(wsId?: string) {
-  let graph = useWorkspaceStore(wsId).graph
-  return useWatch(() => graph.nodeIdSet)[0]
-}
-
-export function useEdgeIdSet(wsId?: string) {
-  let graph = useWorkspaceStore(wsId).graph
-  return useWatch(() => graph.edgeIdSet)[0]
-}
-
 export function useNode(id: string, wsId?: string) {
   let graph = useWorkspaceStore(wsId).graph
-  return useObservable(() => graph.nodeMap[id] || { id }, [id, wsId, graph.nodeMap])
+  return useObservable(() => graph.nodes.get(id) || { id }, [id, wsId, graph.nodes])
 }
 
 export function useEdge(id: string, wsId?: string) {
   let graph = useWorkspaceStore(wsId).graph
-  return useObservable(() => graph.edgeMap[id] || { id }, [id, wsId, graph.edgeMap])
+  return useObservable(() => graph.edges.get(id) || { id }, [id, wsId, graph.edges])
 }
 
 export function useWatchNodePos(id: string, wsId?: string) {
   let graph = useWorkspaceStore(wsId).graph
 
   return useWatch(() => {
-    let node = graph.nodeMap[id]
+    let node = graph.nodes.get(id)
     let x = node?.x
     let y = node?.y
     let width = node?.width ?? 250

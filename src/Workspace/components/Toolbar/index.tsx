@@ -19,8 +19,7 @@ export function Toolbar() {
       justifyContent: 'center',
     }}
     >
-      <button onClick={() => {
-
+      {/* <button onClick={() => {
         let nodes = [1,2,3,4,5].map(i => ({
           id: i + '',
           x: 0,
@@ -56,7 +55,7 @@ export function Toolbar() {
         cmd.dispatch(CMD.RecalculateGraphLayout, { payload })
       }}>
         test
-      </button>
+      </button> */}
       <button onClick={() => cmd.dispatch(CMD.RecalculateGraphLayout)}>
         Calculate Layout
       </button>
