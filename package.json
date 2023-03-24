@@ -35,7 +35,7 @@
     "rc-drawer": "^4.4.3",
     "react-json-view": "^1.21.3",
     "svg-intersections": "^0.4.0",
-    "use-mobx-observable": "^0.1.10"
+    "use-mobx-observable": "^1.0.7"
   },
   "peerDependencies": {
     "react": ">=16.8"

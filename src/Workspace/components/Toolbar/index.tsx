@@ -61,7 +61,7 @@ export function Toolbar() {
         Calculate Layout
       </button>
       <button onClick={() => cmd.dispatch(CMD.RecalculateGraphLayout, { payload: { partial: ['0a', 'a'] }})}>
-        Calculate Layout (soft)
+        Calculate Layout (partial)
       </button>
       <label>
         <input

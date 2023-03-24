@@ -1,5 +1,5 @@
 import React, { useContext, useMemo, useState } from 'react'
-import { useMultiObservable } from 'use-mobx-observable'
+import { useObservable } from 'use-mobx-observable'
 import { useCommandCenter } from '../../CommandCenter'
 import { WorkspaceIDContext } from '../Workspace'
 import ErrorBoundary from './ErrorBoundary'
@@ -14,7 +14,9 @@ export function DebugPanel() {
     }, undoStack, redoStack,
   } = useCommandCenter()
   let [query, setQuery] = useState('')
-  useMultiObservable(state, config, graph)
+  useObservable(state)
+  useObservable(config)
+  useObservable(graph)
   let src = useMemo(() => {
     let data = {
       id,
